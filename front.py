@@ -1,16 +1,17 @@
 #!/usr/bin/env pythonw
 
+import os
+import sys
+
 import pygame
 from pygame.locals import QUIT, K_SPACE, KEYDOWN
 
-import sys
-import os
-
+from controllers import KeyboardController
 from game_utils import GameUtils
 from level import Level, EmptyCell, BlockCell, StartPositionCell, ExitCell
-from controllers import KeyboardController
-from world import World
+from search import WorldGraph, a_star_search
 from trajectory import Trajectory
+from world import World
 
 
 class GameEngine:
@@ -81,9 +82,28 @@ class GameEngine:
                     obj = None
                 if obj is not None:
                     self.game_objects.append(obj)
-        self.sprites = pygame.sprite.Group(self.game_objects)
+
         self.world = World(self.level)
         self.state = self.world.init_state
+
+        # Compute path from start to exit with A*.
+        exit_position, exit_cell = self.level.get_exit()
+        came_from, cost_so_far, current = a_star_search(
+            graph=WorldGraph(self.world), start=self.state,
+            exit_check=lambda state: self.world.get_player_position(state) == exit_position)
+
+        search_path = []
+        while True:
+            if current is None:
+                break
+            search_path.append(current)
+            current = came_from[current]
+
+        for state in search_path:
+            self.game_objects.append(Searched(*self.world.get_player_position(state)))
+
+        # Initialize sprites.
+        self.sprites = pygame.sprite.Group(self.game_objects)
 
     def initialize_controller(self, controller):
         self.controller = controller
@@ -167,6 +187,12 @@ class Player(GameObject):
 class Exit(GameObject):
     def __init__(self, x, y):
         self.image, self.rect = GameUtils.load_image('exit.png')
+        super().__init__(x, y)
+
+
+class Searched(GameObject):
+    def __init__(self, x, y):
+        self.image, self.rect = GameUtils.load_image('searched.png', rescale=(3, 3))
         super().__init__(x, y)
 
 

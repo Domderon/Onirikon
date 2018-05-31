@@ -20,11 +20,13 @@ class GameUtils:
         image.fill(color)
         return image, rect
 
-    def load_image(name):
+    def load_image(name, rescale=None):
         fullname = os.path.join('assets', 'images', name)
         try:
             image = pygame.image.load(fullname)
         except pygame.error:
             print('Warning: cannot load image: %s, generating placeholder' % fullname)
             return GameUtils.generate_placeholder_image(name)
+        if rescale is not None:
+            image = pygame.transform.scale(image, rescale)
         return image.convert(), image.get_rect()

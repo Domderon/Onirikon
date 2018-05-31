@@ -1,5 +1,3 @@
-import copy
-
 from enum import Enum
 from level import BlockCell, EmptyCell, ExitCell, StartPositionCell
 

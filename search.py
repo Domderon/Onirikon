@@ -10,8 +10,8 @@ import heapq
 import sys
 
 
-from level import Level
-from world import Action, World
+# from level import Level
+from world import Action  # , World
 
 
 class PriorityQueue:
@@ -251,10 +251,13 @@ def a_star_search(graph, start, exit_check):
     cost_so_far = {start: 0}
     processed = set()
 
+    current = None
+    found = False
     while not frontier.empty():
         current = frontier.get()
 
         if exit_check(current):
+            found = True
             break
 
         if current in processed:
@@ -271,7 +274,8 @@ def a_star_search(graph, start, exit_check):
                 frontier.put(next_, priority)
                 came_from[next_] = current
 
-    return came_from, cost_so_far
+    assert found, 'A* failed'
+    return came_from, cost_so_far, current
 
 
 def reconstruct_path(came_from, start, goal):
@@ -289,56 +293,14 @@ DIAGRAM1_WALLS = [from_id_width(id_, width=30) for id_ in [21, 22, 51, 52, 81, 8
 
 
 def main():
+    """
     level = Level(width=10, height=10)
     world = World(level=level)
     world_graph = WorldGraph(world=world)
     exit_position, _ = level.get_exit()
     came_from, cost_so_far = a_star_search(graph=world_graph, start=world.init_state,
                                            exit_check=lambda state: world.get_player_position(state) == exit_position)
-
-    return 0
-
-    example_graph = SimpleGraph()
-    example_graph.edges = {
-        'A': ['B'],
-        'B': ['A', 'C', 'D'],
-        'C': ['A'],
-        'D': ['E', 'A'],
-        'E': ['B']
-    }
-    # breadth_first_search_1(example_graph, 'A')
-
-    g = SquareGrid(30, 15)
-    g.walls = DIAGRAM1_WALLS  # long list, [(21, 0), (21, 2), ...]
-    # parents = breadth_first_search_2(g, (8, 7))
-    # draw_grid(g, width=2, point_to=parents, start=(8, 7))
-    # parents = breadth_first_search_3(g, (8, 7), (17, 2))
-    # draw_grid(g, width=2, point_to=parents, start=(8, 7), goal=(17, 2))
-
-    diagram4 = GridWithWeights(10, 10)
-    diagram4.walls = [(1, 7), (1, 8), (2, 7), (2, 8), (3, 7), (3, 8)]
-    diagram4.weights = {loc: 5 for loc in [(3, 4), (3, 5), (4, 1), (4, 2),
-                                           (4, 3), (4, 4), (4, 5), (4, 6),
-                                           (4, 7), (4, 8), (5, 1), (5, 2),
-                                           (5, 3), (5, 4), (5, 5), (5, 6),
-                                           (5, 7), (5, 8), (6, 2), (6, 3),
-                                           (6, 4), (6, 5), (6, 6), (6, 7),
-                                           (7, 3), (7, 4), (7, 5)]}
-
-    # came_from, cost_so_far = dijkstra_search(diagram4, (1, 4), (7, 8))
-    # draw_grid(diagram4, width=3, point_to=came_from, start=(1, 4), goal=(7, 8))
-    # print()
-    # draw_grid(diagram4, width=3, number=cost_so_far, start=(1, 4), goal=(7, 8))
-    # print()
-    # draw_grid(diagram4, width=3, path=reconstruct_path(came_from, start=(1, 4), goal=(7, 8)))
-
-    start, goal = (1, 4), (7, 8)
-    came_from, cost_so_far = a_star_search(diagram4, start, goal)
-    draw_grid(diagram4, width=3, point_to=came_from, start=start, goal=goal)
-    print()
-    draw_grid(diagram4, width=3, number=cost_so_far, start=start, goal=goal)
-    print()
-
+    """
     return 0
 
 
