@@ -1,7 +1,11 @@
 #!/usr/bin/env pythonw
 
 import os
+import random
 import sys
+
+# Initialize seed immediately to be safe (default = system clock, but you can use a fixed integer for debugging).
+random.seed(None)
 
 import pygame
 from pygame.locals import QUIT, K_SPACE, KEYDOWN
