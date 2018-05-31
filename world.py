@@ -1,7 +1,7 @@
 import copy
 
 from enum import Enum
-from level import BlockCell, StartPositionCell
+from level import BlockCell, EmptyCell, ExitCell, StartPositionCell
 
 
 class Action(Enum):
@@ -26,7 +26,7 @@ class World(object):
     def init(self):
         # Initialization: analyze the level to build the initial state.
         # First get the state of stateful cells.
-        self.init_state = [cell.get_state() for cell in self.level.enumerate_cells() if cell.has_state()]
+        self.init_state = [cell.get_state() for _, cell in self.level.enumerate_cells() if cell.has_state()]
         # Add player position.
         for pos, cell in self.level.enumerate_cells():
             if isinstance(cell, StartPositionCell):
@@ -34,12 +34,15 @@ class World(object):
                 self.player_position_idx = len(self.init_state) - 1
             elif isinstance(cell, BlockCell):
                 self.blocked.add(pos)
+            elif isinstance(cell, (EmptyCell, ExitCell)):
+                # Ignore.
+                pass
             else:
                 raise NotImplementedError(type(cell))
-        else:
-            raise RuntimeError('No start position found!')
+        assert self.player_position_idx is not None
+        self.init_state = tuple(self.init_state)
 
-    def perform(self, state, action, copy_state=True):
+    def perform(self, state, action):
         """
         Perform `action` in the given `state`.
 
@@ -59,9 +62,6 @@ class World(object):
         if x < 0 or x >= self.level.width or y < 0 or y >= self.level.height or (x, y) in self.blocked:
             # Can't move!
             return None
-        if copy_state:
-            new_state = copy.copy(state)
-        else:
-            new_state = state
+        new_state = list(state)
         new_state[self.player_position_idx] = x, y
-        return new_state
+        return tuple(new_state)
