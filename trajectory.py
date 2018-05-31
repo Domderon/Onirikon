@@ -2,23 +2,20 @@ import random
 import numpy
 
 from level import Level
+from world import Action
 
 class Trajectory:
     # an array of directions, validate for maximum extend, and for non-crossing
     # direction: 0,1,2,3
     
-    directions = [0, 1, 2, 3]
-    offsets = [(-1,0), (1,0), (0,-1), (0,1)]
+    offsets = { Action.LEFT : (-1,0), Action.RIGHT: (1,0), Action.UP : (0,-1), Action.DOWN: (0,1)}
     
-    def __init__(self):
+    def __init__(self, level, min_length=1, max_length=10):
         self.actions = []
-        
-    # initialize a trajectory in an empty level
-    def initialize(self, level, min_length=1, max_length=10):
         self.level = level
-        self.simple(level, min_length, max_length)
-        return
-    
+        #self.simple(level, min_length, level.width)
+        self.complex(level)
+        
     def get_traversed_cells(self):
         cells = { self.start }
         pos = self.start
@@ -49,7 +46,22 @@ class Trajectory:
         y = random.randint(1,level.height-2)
         self.start = (1,y)
         for i in range(size):
-            self.actions.append(1);
+            self.actions.append(Action.RIGHT);
+
+    def complex(self, level):
+        start = (random.randint(1,level.width-2), random.randint(1,level.height-2))
+        end = start
+        while start == end:
+            end = (random.randint(1,level.width-2), random.randint(1,level.height-2))
+
+        self.start = start
+        x_dir = Action.RIGHT if start[0] < end[0] else Action.LEFT
+        for i in range(abs(start[0]-end[0])):
+            self.actions.append(x_dir)
+
+        y_dir = Action.DOWN if start[1] < end[1] else Action.UP
+        for i in range(abs(start[1]-end[1])):
+            self.actions.append(y_dir)
 
     # visualize trajectory in level  
     def draw(self):
@@ -64,10 +76,11 @@ class Trajectory:
         level.print()
         return
 '''
-l = Level(8, 6)
-t = Trajectory()
-t.initialize(l)
-t.draw()
+l = Level(10, 10)
+t = Trajectory(l)
+l.generate_from_trajectory(t, 0.1)
+#t.draw()
+l.print()
 '''
 
 
