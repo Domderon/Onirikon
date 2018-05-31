@@ -117,6 +117,10 @@ class GameEngine:
         for state in search_path:
             self.game_objects.append(Searched(*self.world.get_player_position(state)))
 
+        trajectory_path = trajectory.get_path()
+        for point in trajectory_path:
+            self.game_objects.append(TrajectoryPath(*point))
+
         # Initialize sprites.
         self.sprites = pygame.sprite.Group(self.game_objects)
 
@@ -219,6 +223,10 @@ class Searched(GameObject):
         self.image, self.rect = GameUtils.load_image('searched.png', rescale=(3, 3))
         super().__init__(x, y)
 
+class TrajectoryPath(GameObject):
+    def __init__(self, x, y):
+        self.image, self.rect = GameUtils.load_image('trajectory.png', rescale=(6, 6))
+        super().__init__(x, y)
 
 if __name__ == '__main__':
     if len(sys.argv) >= 2:
