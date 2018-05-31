@@ -25,6 +25,12 @@ class Level:
     def size(self):
         return self.width, self.height
         
+    def set(self, x, y, value):
+        self.cells[y, x] = value
+        
+    def get(self, x, y):
+        return self.cells[y, x]
+    
     def print(self):
         types = [' ', '#', '*']
         
