@@ -10,6 +10,10 @@ import heapq
 import sys
 
 
+from level import Level
+from world import Action, World
+
+
 class PriorityQueue:
 
     def __init__(self):
@@ -37,6 +41,49 @@ class Queue:
 
     def get(self):
         return self.elements.popleft()
+
+
+class Graph(object):
+
+    """
+    Abstract class for graphs.
+    """
+
+    def __init__(self, **kw):
+        assert not kw, f'no additional argument expected, but found: {kw}'
+
+    def neighbors(self, node):
+        raise NotImplementedError(self.__class__.__name__)
+
+
+class WorldGraph(Graph):
+
+    """
+    Graph based on a `World`.
+    """
+
+    def __init__(self, world, **kw):
+        """
+        Constructor.
+
+        :param world: The world this graph is based on.
+        :param kw: Additional arguments forwarded to parent class.
+        """
+        super().__init__(**kw)
+        self.world = world
+
+    def cost(self, a, b):
+        return 1
+    
+    def neighbors(self, node):
+        state = node
+
+        neighbors = []
+        for action in Action:
+            next_state = self.world.perform(state, action)
+            if next_state is not None:
+                neighbors.append(next_state)
+        return neighbors
 
 
 class SimpleGraph:
@@ -193,13 +240,11 @@ def draw_tile(graph, id_, style, width):
     return r
 
 
-def heuristic(a, b):
-    (x1, y1) = a
-    (x2, y2) = b
-    return abs(x1 - x2) + abs(y1 - y2)
+def heuristic(exit_check, state):
+    return 0
 
 
-def a_star_search(graph, start, goal):
+def a_star_search(graph, start, exit_check):
     frontier = PriorityQueue()
     frontier.put(start, 0)
     came_from = {start: None}
@@ -209,7 +254,7 @@ def a_star_search(graph, start, goal):
     while not frontier.empty():
         current = frontier.get()
 
-        if current == goal:
+        if exit_check(current):
             break
 
         if current in processed:
@@ -222,7 +267,7 @@ def a_star_search(graph, start, goal):
             new_cost = cost_so_far[current] + graph.cost(current, next_)
             if next_ not in cost_so_far or new_cost < cost_so_far[next_]:
                 cost_so_far[next_] = new_cost
-                priority = new_cost + heuristic(goal, next_)
+                priority = new_cost + heuristic(exit_check, next_)
                 frontier.put(next_, priority)
                 came_from[next_] = current
 
@@ -244,6 +289,15 @@ DIAGRAM1_WALLS = [from_id_width(id_, width=30) for id_ in [21, 22, 51, 52, 81, 8
 
 
 def main():
+    level = Level(width=10, height=10)
+    world = World(level=level)
+    world_graph = WorldGraph(world=world)
+    exit_position, _ = level.get_exit()
+    came_from, cost_so_far = a_star_search(graph=world_graph, start=world.init_state,
+                                           exit_check=lambda state: world.get_player_position(state) == exit_position)
+
+    return 0
+
     example_graph = SimpleGraph()
     example_graph.edges = {
         'A': ['B'],

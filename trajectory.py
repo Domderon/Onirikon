@@ -13,7 +13,7 @@ class Trajectory:
     def __init__(self):
         self.actions = []
         
-    # initialize a trajactory in an empty level
+    # initialize a trajectory in an empty level
     def initialize(self, level, min_length=1, max_length=10):
         self.level = level
         self.simple(level, min_length, max_length)
