@@ -5,13 +5,11 @@ A lot of code copied from:
     https://www.redblobgames.com/pathfinding/a-star/implementation.html
 """
 
-import collections
 import heapq
 import sys
 
 
-# from level import Level
-from world import Action  # , World
+from world import Action
 
 
 class PriorityQueue:
@@ -113,7 +111,9 @@ def a_star_search(graph, start, exit_definition, extract_definition):
 
     current = None
     found = False
+    n_steps = 0
     while not frontier.empty():
+        n_steps += 1
         current = frontier.get()
 
         if extract_definition(current) == exit_definition:
@@ -136,18 +136,12 @@ def a_star_search(graph, start, exit_definition, extract_definition):
                 came_from[next_] = current
 
     assert found, 'A* failed'
+    # print(f'A* succeeded in {n_steps} steps')
     return came_from, cost_so_far, current
 
 
 def main():
-    """
-    level = Level(width=10, height=10)
-    world = World(level=level)
-    world_graph = WorldGraph(world=world)
-    exit_position, _ = level.get_exit()
-    came_from, cost_so_far = a_star_search(graph=world_graph, start=world.init_state,
-                                           exit_check=lambda state: world.get_player_position(state) == exit_position)
-    """
+    # Test code, if needed.
     return 0
 
 
