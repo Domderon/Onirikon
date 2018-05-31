@@ -177,8 +177,8 @@ class GameEngine:
                         if self.player.x == self.exit.x and self.player.y == self.exit.y:
                             print("WIN")
                             self._play_sound('win')
-                            self.clock.tick(1)
                             self.playing = False
+                            self.clock.tick(1)
                         else:
                             self._play_sound('move')
                     else:
@@ -223,10 +223,12 @@ class Searched(GameObject):
         self.image, self.rect = GameUtils.load_image('searched.png', rescale=(3, 3))
         super().__init__(x, y)
 
+
 class TrajectoryPath(GameObject):
     def __init__(self, x, y):
         self.image, self.rect = GameUtils.load_image('trajectory.png', rescale=(6, 6))
         super().__init__(x, y)
+
 
 if __name__ == '__main__':
     if len(sys.argv) >= 2:
