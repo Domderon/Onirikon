@@ -2,6 +2,7 @@ import random
 import numpy
 
 from level import Level
+from world import Action
 
 class Trajectory:
     # an array of directions, validate for maximum extend, and for non-crossing
@@ -10,15 +11,11 @@ class Trajectory:
     directions = [0, 1, 2, 3]
     offsets = [(-1,0), (1,0), (0,-1), (0,1)]
     
-    def __init__(self):
+    def __init__(self, level, min_length=1, max_length=10):
         self.actions = []
-        
-    # initialize a trajectory in an empty level
-    def initialize(self, level, min_length=1, max_length=10):
         self.level = level
-        self.simple(level, min_length, max_length)
-        return
-    
+        self.simple(level, min_length, level.width)
+        
     def get_traversed_cells(self):
         cells = { self.start }
         pos = self.start
@@ -64,10 +61,11 @@ class Trajectory:
         level.print()
         return
 '''
-l = Level(8, 6)
-t = Trajectory()
-t.initialize(l)
-t.draw()
+l = Level(10, 10)
+t = Trajectory(l)
+l.generate_from_trajectory(t, 0.1)
+#t.draw()
+l.print()
 '''
 
 
