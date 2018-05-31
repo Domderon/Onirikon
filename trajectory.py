@@ -106,16 +106,21 @@ class Trajectory:
         self.start = (random.randint(1,level.width-2), random.randint(1,level.height-2))
         self.actions = self.recursive_complex(level.copy(), self.start, max_length)
 
+    def get_path(self):
+        pos = self.start
+        points = [pos]
+        for action in self.actions[:-1]:
+            offset = self.offsets[action]
+            pos = pos_add(pos, offset)
+            points.append(pos)
+        return points
+    
     # visualize trajectory in level  
     def draw(self):
         level = self.level.copy()
-        
-        pos = self.start
-        level.set(pos, 2)
-        for action in self.actions[:-1]:
-            offset = self.offsets[action]
-            pos = (pos[0] + offset[0], pos[1] + offset[1])
-            level.set(pos, 2)
+        path = self.get_path()
+        for point in path:
+            level.set(point, 2)
         level.print()
         return
 '''
