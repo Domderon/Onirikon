@@ -12,6 +12,12 @@ class Cell():
     def __init__(self):
         pass
 
+    def get_state(self):
+        return None
+
+    def has_state(self):
+        return self.get_state() is not None
+
 
 class EmptyCell(Cell):
     def __init__(self):
@@ -58,6 +64,14 @@ class Level:
         level = Level(self.width, self.height)
         level.cells = self.cells.copy()
         return level
+
+    def enumerate_cells(self):
+        """
+        Iterate over all cells in the level.
+        """
+        for x in range(self.width):
+            for y in range(self.height):
+                yield (x, y), self.get_cell(x, y)
 
     def size(self):
         return self.width, self.height
