@@ -76,7 +76,7 @@ class Level:
         self.exit = pos
         self.set(pos, 3)
         
-    def generate_from_trajectory(self, trajectory, density = 0.1):
+    def generate_from_trajectory(self, trajectory, density=0.1):
         self.set_start(trajectory.get_start())
         self.set_exit(trajectory.get_end())
 
