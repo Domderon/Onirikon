@@ -57,10 +57,11 @@ class Level:
         self.cells[:, width-1] = 1
         self.cells[0, :] = 1
         self.cells[height-1, :] = 1
-        self.cells[1, 1] = 2
-        self.cells[height-1, width-1] = 3
 
     def generate_from_trajectory(self, trajectory, density = 0.1):
+        self.set(trajectory.get_start(), 2)
+        self.set(trajectory.get_end(), 3)
+
         blocked_cells = trajectory.get_traversed_cells()
         for i in range(1, self.width-1):
             for j in range(1, self.height-1):
