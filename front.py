@@ -9,6 +9,7 @@ from game_utils import GameUtils
 from level import Level, EmptyCell, BlockCell, StartPositionCell, ExitCell
 from controllers import KeyboardController
 from world import World
+from trajectory import Trajectory
 
 
 class GameEngine:
@@ -41,6 +42,9 @@ class GameEngine:
     def initialize_level(self, level_filename=None):
         if level_filename is None:
             self.level = Level(10, 10)
+            trajectory = Trajectory()
+            trajectory .initialize(self.level)
+            self.level.generate_from_trajectory(trajectory, 0.2)
         else:
             self.level = Level.load_level(level_filename)
         self.level_width, self.level_height = self.level.size()

@@ -19,6 +19,25 @@ class Trajectory:
         self.simple(level, min_length, max_length)
         return
     
+    def get_traversed_cells(self):
+        cells = { self.start }
+        pos = self.start
+        for action in self.actions:
+            offset = self.offsets[action]
+            pos = (pos[0] + offset[0], pos[1] + offset[1])
+            cells.add(pos)
+        return cells
+
+    def get_start(self):
+        return self.start
+    
+    def get_end(self):
+        pos = self.start
+        for action in self.actions:
+            offset = self.offsets[action]
+            pos = (pos[0] + offset[0], pos[1] + offset[1])
+        return pos
+        
     # generate a simple trajectory
     def simple(self, level, min_length, max_length):
         max_length = min(max_length, level.width-3)
@@ -38,7 +57,7 @@ class Trajectory:
         
         pos = self.start
         level.set(pos, 2)
-        for action in self.actions:
+        for action in self.actions[:-1]:
             offset = self.offsets[action]
             pos = (pos[0] + offset[0], pos[1] + offset[1])
             level.set(pos, 2)

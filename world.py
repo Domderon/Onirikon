@@ -20,6 +20,9 @@ class World(object):
         self.blocked = set()
         self.init()
 
+    def get_player_position(self, state):
+        return state[self.player_position_idx]
+
     def init(self):
         # Initialization: analyze the level to build the initial state.
         # First get the state of stateful cells.
@@ -42,7 +45,7 @@ class World(object):
 
         :return: The new state if the action was successful, or `None` otherwise.
         """
-        x, y = state[self.player_position_idx]
+        x, y = self.get_player_position(state)
         if action == Action.DOWN:
             y += 1
         elif action == Action.UP:
