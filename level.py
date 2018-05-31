@@ -97,6 +97,20 @@ class Level:
     def get_cell(self, x, y):
         return self.types[self.cells[y, x]]()
 
+    def get_exit(self):
+        for pos, cell in self.enumerate_cells():
+            if isinstance(cell, ExitCell):
+                return pos, cell
+        else:
+            raise RuntimeError('no exit cell!')
+
+    def get_start(self):
+        for pos, cell in self.enumerate_cells():
+            if isinstance(cell, StartPositionCell):
+                return pos, cell
+        else:
+            raise RuntimeError('no start cell!')
+
     def print(self):
 
         for i in range(self.height):
