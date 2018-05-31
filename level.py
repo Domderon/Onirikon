@@ -42,6 +42,11 @@ class ExitCell(Cell):
         self.type = 'E'
         super().__init__()
 
+class TrajectoryCell(Cell):
+    def __init__(self):
+        self.type = '*'
+        super().__init__()
+
 
 class Level:
     def load_level(level_filename):
@@ -49,7 +54,7 @@ class Level:
         return Level(10, 10)
 
     def __init__(self, width, height):
-        self.types = [EmptyCell, BlockCell, StartPositionCell, ExitCell]
+        self.types = [EmptyCell, BlockCell, StartPositionCell, ExitCell, TrajectoryCell]
         self.width = width
         self.height = height
         self.cells = np.zeros((height, width), dtype=int)
