@@ -1,4 +1,4 @@
-#!/usr/bin/env pythonw
+#!/usr/bin/env python
 
 import pygame
 from pygame.locals import QUIT, K_SPACE, KEYDOWN
@@ -7,12 +7,15 @@ import sys
 
 from game_utils import GameUtils
 from level import Level, EmptyCell, BlockCell, StartPositionCell, ExitCell
+from controllers import KeyboardController
+from world import World
 
 
 class GameEngine:
     SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 768
     CELL_SIZE = 20
     TICKS_PER_SECOND = 60
+    ACTION_INTERVAL_TICKS = 10
 
     def init_display(self, fullscreen):
         if fullscreen:
@@ -51,15 +54,31 @@ class GameEngine:
                     obj = Block(x, y)
                 elif type(cell) is StartPositionCell:
                     obj = Player(x, y)
+                    self.player = obj
                 elif type(cell) is ExitCell:
                     obj = Exit(x, y)
+                    self.exit = obj
                 else:
                     obj = None
                 if obj is not None:
                     self.game_objects.append(obj)
         self.sprites = pygame.sprite.Group(self.game_objects)
+        self.world = World(self.level)
+        self.state = self.world.init_state
+
+    def initialize_controller(self, controller):
+        self.controller = controller
+
+    def update_display(self):
+        self.screen.blit(self.surface, (0, 0))
+        self.sprites.update()
+        self.sprites.draw(self.screen)
+        pygame.display.flip()
+        pygame.display.update()
 
     def loop(self):
+        tick = 0
+        keys = []
         while True:
             pygame.event.pump()
             for event in pygame.event.get():
@@ -71,12 +90,19 @@ class GameEngine:
                         print('space pressed')
                         pygame.quit()
                         sys.exit()
-            self.screen.blit(self.surface, (0, 0))
-            self.sprites.update()
-            self.sprites.draw(self.screen)
-            pygame.display.flip()
-            pygame.display.update()
+                    else:
+                        keys.append(event)
+            if tick % self.ACTION_INTERVAL_TICKS == 0:
+                action = self.controller.get_action(data=keys)
+                self.state = self.world.perform(self.state, action)
+                player_pos = self.state[self.world.player_position_idx]
+                self.player.x, self.player.y = player_pos
+                if self.player.x == self.exit.x and self.player.y == self.exit.y:
+                    print("WIN")
+                keys = []
+            self.update_display()
             self.clock.tick(self.TICKS_PER_SECOND)
+            tick += 1
 
 
 class GameObject(pygame.sprite.Sprite):
@@ -116,4 +142,5 @@ if __name__ == '__main__':
         level_filename = None
     engine = GameEngine(fullscreen=False)
     engine.initialize_level(level_filename)
+    engine.initialize_controller(KeyboardController())
     engine.loop()
