@@ -1,6 +1,7 @@
 import os
 import pygame
 from binascii import crc32
+from numpy import random
 
 
 class GameUtils:
@@ -14,7 +15,7 @@ class GameUtils:
 
     def generate_placeholder_image(name):
         image = pygame.Surface((GameUtils.DEFAULT_WIDTH, GameUtils.DEFAULT_HEIGHT))
-        rect = pygame.Rect(0, 0, GameUtils.DEFAULT_WIDTH, GameUtils.DEFAULT_HEIGHT)
+        rect = pygame.Rect(random.randint(1000), random.randint(700), GameUtils.DEFAULT_WIDTH, GameUtils.DEFAULT_HEIGHT)
         color = GameUtils._color_from_string(name)
         image.fill(color)
         return image, rect

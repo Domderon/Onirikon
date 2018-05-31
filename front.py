@@ -11,6 +11,7 @@ from level import Level, EmptyCell, BlockCell, StartPositionCell, ExitCell
 
 class GameEngine:
     SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 768
+    CELL_SIZE = 20
     TICKS_PER_SECOND = 60
 
     def init_display(self, fullscreen):
@@ -48,6 +49,10 @@ class GameEngine:
                     obj = None
                 elif type(cell) is BlockCell:
                     obj = Block(x, y)
+                elif type(cell) is StartPositionCell:
+                    obj = Player(x, y)
+                elif type(cell) is ExitCell:
+                    obj = Exit(x, y)
                 else:
                     obj = None
                 if obj is not None:
@@ -78,13 +83,29 @@ class GameObject(pygame.sprite.Sprite):
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.rect = self.rect.move(self.x, self.y)
+        self.update_coords()
         super().__init__()
+
+    def update_coords(self):
+        self.rect.x = self.x * GameEngine.CELL_SIZE
+        self.rect.y = self.y * GameEngine.CELL_SIZE
 
 
 class Block(GameObject):
     def __init__(self, x, y):
         self.image, self.rect = GameUtils.load_image('block.png')
+        super().__init__(x, y)
+
+
+class Player(GameObject):
+    def __init__(self, x, y):
+        self.image, self.rect = GameUtils.load_image('player.png')
+        super().__init__(x, y)
+
+
+class Exit(GameObject):
+    def __init__(self, x, y):
+        self.image, self.rect = GameUtils.load_image('exit.png')
         super().__init__(x, y)
 
 
