@@ -17,10 +17,18 @@ class Level:
         self.cells[0,:] = 1
         self.cells[height-1,:] = 1
         
-    def print(self):
-        types = [' ', '#']
+    def copy(self):
+        level = Level(self.width, self.height)
+        level.cells = self.cells.copy()
+        return level
         
-        for i in range(self.width):
-            for j in range(self.height):
-                print(types[self.cells[j,i]], end = '')
+    def size(self):
+        return self.width, self.height
+        
+    def print(self):
+        types = [' ', '#', '*']
+        
+        for i in range(self.height):
+            for j in range(self.width):
+                print(types[self.cells[i,j]], end = '')
             print("")
