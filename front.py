@@ -4,43 +4,46 @@ import os
 import random
 import sys
 
-# Initialize seed immediately to be safe (default = system clock, but you can use a fixed integer for debugging).
-random.seed(None)
-
 import pygame
 from pygame.locals import QUIT, K_SPACE, KEYDOWN
 
-from controllers import KeyboardController
 from game_utils import GameUtils
 from level import Level, EmptyCell, BlockCell, StartPositionCell, ExitCell
 from search import WorldGraph, a_star_search
-from trajectory import Trajectory
+from controllers import KeyboardController, AStarController
 from world import World
+from trajectory import Trajectory
+
+# Initialize seed immediately to be safe (default = system clock, but you can use a fixed integer for debugging).
+random.seed(None)
 
 
 class GameEngine:
     SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 768
     CELL_SIZE = 20
     TICKS_PER_SECOND = 60
-    ACTION_INTERVAL_TICKS = 1
     SOUNDS = ['spawn', 'move', 'blocked', 'drink', 'eat', 'win']
+    MODE_KEYBOARD = 'keyboard'
+    MODE_ASTAR = 'astar'
 
-    def init_display(self, fullscreen):
+    def _clear_screen(self):
+        self.surface.fill((255, 255, 255))
+
+    def _init_display(self, fullscreen):
         if fullscreen:
             self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.HWSURFACE)
         else:
             self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT), pygame.RESIZABLE)
         surface = pygame.Surface(self.screen.get_size())
         self.surface = surface.convert()
-        self.surface.fill((255, 255, 255))
 
-    def init_clock(self):
+    def _init_clock(self):
         self.clock = pygame.time.Clock()
 
-    def init_keyboard(self):
+    def _init_keyboard(self):
         pygame.key.set_repeat(1, 40)
 
-    def init_sound(self):
+    def _init_sound(self):
         self.sounds = {}
         for name in self.SOUNDS:
             try:
@@ -49,18 +52,25 @@ class GameEngine:
             except FileNotFoundError:
                 print('Warning: sound "%s" not found' % name)
 
-    def play_sound(self, name):
+    def _play_sound(self, name):
         if name in self.sounds:
             self.sounds[name].play()
 
+    def _set_mode(self, mode):
+        self.mode = mode
+        if mode == self.MODE_KEYBOARD:
+            self._initialize_controller(KeyboardController())
+        elif mode == self.MODE_ASTAR:
+            self._initialize_controller(AStarController(self.level))
+
     def __init__(self, fullscreen=False):
         pygame.init()
-        self.init_display(fullscreen)
-        self.init_keyboard()
-        self.init_clock()
-        self.init_sound()
+        self._init_display(fullscreen)
+        self._init_keyboard()
+        self._init_clock()
+        self._init_sound()
 
-    def initialize_level(self, level_filename=None):
+    def _initialize_level(self, level_filename=None):
         if level_filename is None:
             self.level = Level(40, 30)
             trajectory = Trajectory(self.level)
@@ -110,57 +120,66 @@ class GameEngine:
         # Initialize sprites.
         self.sprites = pygame.sprite.Group(self.game_objects)
 
-    def initialize_controller(self, controller):
+    def _initialize_controller(self, controller):
         self.controller = controller
 
-    def update_display(self):
+    def _update_display(self):
         self.screen.blit(self.surface, (0, 0))
         self.sprites.update()
         self.sprites.draw(self.screen)
         pygame.display.flip()
         pygame.display.update()
 
-    def teardown(self):
+    def _teardown(self):
+        print('Exiting...')
         pygame.mixer.quit()
         pygame.quit()
+
+    def start(self, level_filename, mode):
+        self._clear_screen()
+        self._initialize_level(level_filename)
+        self._set_mode(mode)
+        self.playing = True
 
     def loop(self):
         tick = 0
         keys = []
-        self.play_sound('spawn')
+        key = None
+        self._play_sound('spawn')
         while True:
             pygame.event.pump()
             for event in pygame.event.get():
                 if event.type == QUIT:
-                    self.teardown()
+                    self._teardown()
                     sys.exit()
                 if event.type == KEYDOWN:
                     if K_SPACE == event.key:
-                        self.teardown()
+                        self._teardown()
                         sys.exit()
                     else:
-                        keys.append(event)
-            if tick % self.ACTION_INTERVAL_TICKS == 0:
-                while len(keys) > 0:
+                        if self.mode == self.MODE_KEYBOARD:
+                            keys.append(event)
+            if self.playing:
+                if len(keys) > 0:
                     key = keys.pop(0)
-                    action = self.controller.get_action(data=key)
-                    if action is not None:
-                        state = self.world.perform(self.state, action)
-                        if state is not None:
-                            self.state = state
-                            player_pos = self.world.get_player_position(self.state)
-                            self.player.x, self.player.y = player_pos
-                            self.player.update_coords()
-                            if self.player.x == self.exit.x and self.player.y == self.exit.y:
-                                print("WIN")
-                                self.play_sound('win')
-                                self.clock.tick(1)
-                            else:
-                                self.play_sound('move')
+                action = self.controller.get_action(data=key)
+                if action is not None:
+                    state = self.world.perform(self.state, action)
+                    if state is not None:
+                        self.state = state
+                        player_pos = self.world.get_player_position(self.state)
+                        self.player.x, self.player.y = player_pos
+                        self.player.update_coords()
+                        if self.player.x == self.exit.x and self.player.y == self.exit.y:
+                            print("WIN")
+                            self._play_sound('win')
+                            self.clock.tick(1)
+                            self.playing = False
                         else:
-                            self.play_sound('blocked')
-                        break
-            self.update_display()
+                            self._play_sound('move')
+                    else:
+                        self._play_sound('blocked')
+            self._update_display()
             self.clock.tick(self.TICKS_PER_SECOND)
             tick += 1
 
@@ -207,6 +226,6 @@ if __name__ == '__main__':
     else:
         level_filename = None
     engine = GameEngine(fullscreen=False)
-    engine.initialize_level(level_filename)
-    engine.initialize_controller(KeyboardController())
+    #engine.start(level_filename, GameEngine.MODE_KEYBOARD)
+    engine.start(level_filename, GameEngine.MODE_ASTAR)
     engine.loop()
