@@ -16,13 +16,13 @@ class KeyboardController(Controller):
 
     def get_action(self, data):
         action = None
-        for event in data:
-            if K_LEFT == event.key:
-                action = Action.LEFT
-            elif K_RIGHT == event.key:
-                action = Action.RIGHT
-            elif K_UP == event.key:
-                action = Action.UP
-            elif K_DOWN == event.key:
-                action = Action.DOWN
+        event = data
+        if K_LEFT == event.key:
+            action = Action.LEFT
+        elif K_RIGHT == event.key:
+            action = Action.RIGHT
+        elif K_UP == event.key:
+            action = Action.UP
+        elif K_DOWN == event.key:
+            action = Action.DOWN
         return action

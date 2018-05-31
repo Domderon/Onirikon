@@ -4,6 +4,7 @@ import pygame
 from pygame.locals import QUIT, K_SPACE, KEYDOWN
 
 import sys
+import os
 
 from game_utils import GameUtils
 from level import Level, EmptyCell, BlockCell, StartPositionCell, ExitCell
@@ -17,6 +18,7 @@ class GameEngine:
     CELL_SIZE = 20
     TICKS_PER_SECOND = 60
     ACTION_INTERVAL_TICKS = 1
+    SOUNDS = ['spawn', 'move', 'blocked', 'drink', 'eat', 'win']
 
     def init_display(self, fullscreen):
         if fullscreen:
@@ -33,11 +35,25 @@ class GameEngine:
     def init_keyboard(self):
         pygame.key.set_repeat(1, 40)
 
+    def init_sound(self):
+        self.sounds = {}
+        for name in self.SOUNDS:
+            try:
+                self.sounds[name] = pygame.mixer.Sound(os.path.join(os.path.dirname(__file__), 'assets', 'sound',
+                                                                    name + '.wav'))
+            except FileNotFoundError:
+                print('Warning: sound "%s" not found' % name)
+
+    def play_sound(self, name):
+        if name in self.sounds:
+            self.sounds[name].play()
+
     def __init__(self, fullscreen=False):
         pygame.init()
         self.init_display(fullscreen)
         self.init_keyboard()
         self.init_clock()
+        self.init_sound()
 
     def initialize_level(self, level_filename=None):
         if level_filename is None:
@@ -80,34 +96,46 @@ class GameEngine:
         pygame.display.flip()
         pygame.display.update()
 
+    def teardown(self):
+        pygame.mixer.quit()
+        pygame.quit()
+
     def loop(self):
         tick = 0
         keys = []
+        self.play_sound('spawn')
         while True:
             pygame.event.pump()
             for event in pygame.event.get():
                 if event.type == QUIT:
-                    pygame.quit()
+                    self.teardown()
                     sys.exit()
                 if event.type == KEYDOWN:
                     if K_SPACE == event.key:
-                        print('space pressed')
-                        pygame.quit()
+                        self.teardown()
                         sys.exit()
                     else:
                         keys.append(event)
             if tick % self.ACTION_INTERVAL_TICKS == 0:
-                action = self.controller.get_action(data=keys)
-                if action is not None:
-                    state = self.world.perform(self.state, action)
-                    if state is not None:
-                        self.state = state
-                        player_pos = self.world.get_player_position(self.state)
-                        self.player.x, self.player.y = player_pos
-                        self.player.update_coords()
-                        if self.player.x == self.exit.x and self.player.y == self.exit.y:
-                            print("WIN")
-                keys = []
+                while len(keys) > 0:
+                    key = keys.pop(0)
+                    action = self.controller.get_action(data=key)
+                    if action is not None:
+                        state = self.world.perform(self.state, action)
+                        if state is not None:
+                            self.state = state
+                            player_pos = self.world.get_player_position(self.state)
+                            self.player.x, self.player.y = player_pos
+                            self.player.update_coords()
+                            if self.player.x == self.exit.x and self.player.y == self.exit.y:
+                                print("WIN")
+                                self.play_sound('win')
+                                self.clock.tick(1)
+                            else:
+                                self.play_sound('move')
+                        else:
+                            self.play_sound('blocked')
+                        break
             self.update_display()
             self.clock.tick(self.TICKS_PER_SECOND)
             tick += 1
