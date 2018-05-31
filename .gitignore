@@ -1,3 +1,8 @@
+# Pycharm project folder
+/.idea/
+
+### DEFAULT IGNORES FROM GITHUB FOR PYTHON PROJECTS
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
