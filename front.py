@@ -90,7 +90,8 @@ class GameEngine:
         exit_position, exit_cell = self.level.get_exit()
         came_from, cost_so_far, current = a_star_search(
             graph=WorldGraph(self.world), start=self.state,
-            exit_check=lambda state: self.world.get_player_position(state) == exit_position)
+            exit_definition=exit_position,
+            extract_definition=self.world.get_player_position)
 
         search_path = []
         while True:
