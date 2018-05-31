@@ -6,7 +6,7 @@ Created on Thu May 31 17:14:26 2018
 """
 
 import numpy as np
-
+import random
 
 class Cell():
     def __init__(self):
@@ -33,13 +33,13 @@ class BlockCell(Cell):
 
 class StartPositionCell(Cell):
     def __init__(self):
-        self.type = '*'
+        self.type = 'S'
         super().__init__()
 
 
 class ExitCell(Cell):
     def __init__(self):
-        self.type = '#'
+        self.type = 'E'
         super().__init__()
 
 
@@ -59,6 +59,15 @@ class Level:
         self.cells[height-1, :] = 1
         self.cells[1, 1] = 2
         self.cells[height-1, width-1] = 3
+
+    def generate_from_trajectory(self, trajectory, density = 0.1):
+        blocked_cells = trajectory.get_traversed_cells()
+        for i in range(1, self.width-1):
+            for j in range(1, self.height-1):
+                pos = (i,j)
+                if pos not in blocked_cells:
+                    if random.random() < density:
+                        self.set(pos, 1)
 
     def copy(self):
         level = Level(self.width, self.height)
