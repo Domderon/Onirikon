@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env pythonw
 
 import pygame
 from pygame.locals import QUIT, K_SPACE, KEYDOWN
@@ -16,7 +16,7 @@ class GameEngine:
     SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 768
     CELL_SIZE = 20
     TICKS_PER_SECOND = 60
-    ACTION_INTERVAL_TICKS = 10
+    ACTION_INTERVAL_TICKS = 1
 
     def init_display(self, fullscreen):
         if fullscreen:
@@ -98,11 +98,15 @@ class GameEngine:
                         keys.append(event)
             if tick % self.ACTION_INTERVAL_TICKS == 0:
                 action = self.controller.get_action(data=keys)
-                self.state = self.world.perform(self.state, action)
-                player_pos = self.state[self.world.player_position_idx]
-                self.player.x, self.player.y = player_pos
-                if self.player.x == self.exit.x and self.player.y == self.exit.y:
-                    print("WIN")
+                if action is not None:
+                    state = self.world.perform(self.state, action)
+                    if state is not None:
+                        self.state = state
+                        player_pos = self.world.get_player_position(self.state)
+                        self.player.x, self.player.y = player_pos
+                        self.player.update_coords()
+                        if self.player.x == self.exit.x and self.player.y == self.exit.y:
+                            print("WIN")
                 keys = []
             self.update_display()
             self.clock.tick(self.TICKS_PER_SECOND)
