@@ -25,10 +25,12 @@ class Level:
     def size(self):
         return self.width, self.height
         
-    def set(self, x, y, value):
+    def set(self, pos, value):
+        x, y = pos
         self.cells[y, x] = value
         
-    def get(self, x, y):
+    def get(self, pos):
+        x, y = pos
         return self.cells[y, x]
     
     def print(self):
