@@ -8,10 +8,11 @@ import time
 from multiprocessing import Event, Process, Queue
 
 from level import Level
+from level import LEVEL_WIDTH, LEVEL_HEIGHT
 from trajectory import RandomWalkTrajectory
 
 
-def optimize(output_queue, stop_event, width=20, height=30, put_period=10, density=0.2):
+def optimize(output_queue, stop_event, width=LEVEL_WIDTH, height=LEVEL_HEIGHT, put_period=10, density=0.2):
     """
     Launch optimization.
 

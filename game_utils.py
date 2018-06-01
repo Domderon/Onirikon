@@ -5,8 +5,8 @@ from numpy import random
 
 
 class GameUtils:
-    DEFAULT_WIDTH = 20
-    DEFAULT_HEIGHT = 20
+    DEFAULT_WIDTH = 32
+    DEFAULT_HEIGHT = 32
 
     def _color_from_string(s):
         h = crc32(s.encode('utf-8'))

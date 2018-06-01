@@ -10,6 +10,11 @@ from enum import IntEnum
 
 import numpy as np
 
+
+LEVEL_WIDTH = 30
+LEVEL_HEIGHT = 20
+
+
 class CellType(IntEnum):
     EMPTY = 0
     BLOCK = 1

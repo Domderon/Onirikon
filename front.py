@@ -6,6 +6,7 @@ import sys
 import queue
 from multiprocessing import Process, Queue
 from multiprocessing import Event as MultiEvent
+import numpy as np
 
 import pygame
 from pygame.locals import QUIT, K_SPACE, KEYDOWN, USEREVENT
@@ -21,6 +22,7 @@ from controllers import KeyboardController, AStarController
 from trajectory import RandomWalkTrajectory
 from world import World
 from optimize import optimize
+from level import LEVEL_WIDTH, LEVEL_HEIGHT
 
 # Initialize seed immediately to be safe (default = system clock, but you can use a fixed integer for debugging).
 random.seed(None)
@@ -43,7 +45,7 @@ class EngineState:
 
 class Menu:
     PANEL_WIDTH = 180
-    PANEL_MARGIN_TOP = 20
+    PANEL_MARGIN_TOP = 80
 
     def __init__(self, display):
         self.display = display
@@ -192,8 +194,10 @@ class NextLevelButton(MyButton):
 
 class GameEngine:
     SCREEN_WIDTH, SCREEN_HEIGHT = 1280, 768
-    CELL_SIZE = 20
-    TICKS_PER_SECOND = 60
+    MARGIN_LEFT = 70
+    MARGIN_TOP = 70
+    CELL_SIZE = 32
+    TICKS_PER_SECOND = 30
     SOUNDS = ['spawn', 'move', 'blocked', 'drink', 'eat', 'win']
     MODE_KEYBOARD = 'keyboard'
     MODE_ASTAR = 'astar'
@@ -254,7 +258,7 @@ class GameEngine:
 
     def _load_level(self, level_filename=None, level=None, trajectory=None):
         if level_filename is None:
-            width, height = 40, 30
+            width, height = LEVEL_WIDTH, LEVEL_HEIGHT
             self.trajectory = RandomWalkTrajectory(width, height)
             self.level = Level(width, height)
             self.level.generate_from_trajectory(self.trajectory, 0.5)
@@ -271,7 +275,7 @@ class GameEngine:
             for y in range(self.level_height):
                 cell = self.level.get_cell(x, y)
                 if type(cell) is EmptyCell:
-                    obj = None
+                    obj = Empty(x, y)
                 elif type(cell) is BlockCell:
                     obj = Block(x, y)
                 elif type(cell) is StartPositionCell:
@@ -421,15 +425,15 @@ class GameObject(pygame.sprite.Sprite):
         super().__init__()
 
     def update_coords(self):
-        self.rect.x = self.x * GameEngine.CELL_SIZE
-        self.rect.y = self.y * GameEngine.CELL_SIZE
+        self.rect.x = GameEngine.MARGIN_LEFT + self.x * GameEngine.CELL_SIZE
+        self.rect.y = GameEngine.MARGIN_TOP + self.y * GameEngine.CELL_SIZE
 
 
 # Characters.
 
 class Player(GameObject):
     def __init__(self, x, y):
-        self.image, self.rect = GameUtils.load_image('player.png')
+        self.image, self.rect = GameUtils.load_image('player.png', rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
         super().__init__(x, y)
 
 
@@ -437,33 +441,41 @@ class Player(GameObject):
 
 class Block(GameObject):
     def __init__(self, x, y):
-        self.image, self.rect = GameUtils.load_image('block.png')
+        name = 'wall%d.png' % (np.random.randint(5) + 1)
+        self.image, self.rect = GameUtils.load_image(name, rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
         super().__init__(x, y)
 
 
 class Ice(GameObject):
     def __init__(self, x, y):
-        self.image, self.rect = GameUtils.load_image('ice.png')
+        self.image, self.rect = GameUtils.load_image('ice.png', rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
         super().__init__(x, y)
 
 
 class Tornado(GameObject):
     def __init__(self, x, y):
-        self.image, self.rect = GameUtils.load_image('tornado.png')
+        self.image, self.rect = GameUtils.load_image('tornado.png',
+                                                     rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
         super().__init__(x, y)
 
+
+class Empty(GameObject):
+    def __init__(self, x, y):
+        name = 'empty%d.png' % (((x + y) % 2) + 1)
+        self.image, self.rect = GameUtils.load_image(name, rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
+        super().__init__(x, y)
 
 # Items.
 
 class Cheese(GameObject):
     def __init__(self, x, y):
-        self.image, self.rect = GameUtils.load_image('cheese.png')
+        self.image, self.rect = GameUtils.load_image('cheese.png', rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
         super().__init__(x, y)
 
 
 class Wine(GameObject):
     def __init__(self, x, y):
-        self.image, self.rect = GameUtils.load_image('wine.png')
+        self.image, self.rect = GameUtils.load_image('wine.png', rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
         super().__init__(x, y)
 
 
@@ -471,7 +483,7 @@ class Wine(GameObject):
 
 class Exit(GameObject):
     def __init__(self, x, y):
-        self.image, self.rect = GameUtils.load_image('exit.png')
+        self.image, self.rect = GameUtils.load_image('exit.png', rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
         super().__init__(x, y)
 
 
