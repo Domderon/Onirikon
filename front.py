@@ -431,6 +431,7 @@ class GameEngine:
                 if action is not None:
                     state = self.world.perform(self.state, action)
                     if state is not None:
+                        self.player.set_weight(self.world.get_weight(state))
                         self.state = state
                         player_pos = self.world.get_player_position(self.state)
                         self.player.x, self.player.y = player_pos
@@ -477,8 +478,27 @@ class GameObject(pygame.sprite.Sprite):
 
 class Player(GameObject):
     def __init__(self, x, y):
-        self.image, self.rect = GameUtils.load_image('player.png', rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
+        self.image1, self.rect1 = GameUtils.load_image('player-1.png',
+                                                       rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
+        self.image2, self.rect2 = GameUtils.load_image('player-2.png',
+                                                       rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
+        self.image3, self.rect3 = GameUtils.load_image('player-3.png',
+                                                       rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
+        self.set_weight(2)
+        # self.rect = self.rect2
         super().__init__(x, y)
+
+    def set_weight(self, weight):
+        self.weight = weight
+        if weight <= 1:
+            self.image = self.image1
+            self.rect = self.rect1
+        elif weight >= 3:
+            self.image = self.image3
+            self.rect = self.rect3
+        else:
+            self.image = self.image2
+            self.rect = self.rect2
 
 
 # Obstacles.
