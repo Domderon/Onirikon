@@ -1,6 +1,6 @@
 import random
 
-from level import Level, EmptyCell, BlockCell, StartPositionCell, ExitCell, TrajectoryCell
+from level import CellType, Level, EmptyCell, BlockCell, StartPositionCell, ExitCell, TrajectoryCell
 from world import Action
 
 def pos_add(a, b):
@@ -52,9 +52,10 @@ class Trajectory():
         level = Level(self.level_width, self.level_height)
         path = self.get_path()
         for point in path:
-            level.set(point, 2)
+            level.set(point, CellType.START)
         level.print()
         return
+
 
 class TrivialTrajectory(Trajectory):
     def __init__(self, level_width, level_height, min_length = None, max_length = None):
@@ -108,7 +109,7 @@ class RandomWalkTrajectory(Trajectory):
         self.actions = self.generate_path(level, self.start, max_length)
 
     def generate_path(self, level, pos, max_length):
-        level.set(pos, 4)
+        level.set(pos, CellType.TRAJECTORY)
 
         if max_length == 1:
             return []

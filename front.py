@@ -201,11 +201,7 @@ class GameObject(pygame.sprite.Sprite):
         self.rect.y = self.y * GameEngine.CELL_SIZE
 
 
-class Block(GameObject):
-    def __init__(self, x, y):
-        self.image, self.rect = GameUtils.load_image('block.png')
-        super().__init__(x, y)
-
+# Characters.
 
 class Player(GameObject):
     def __init__(self, x, y):
@@ -213,11 +209,37 @@ class Player(GameObject):
         super().__init__(x, y)
 
 
+# Obstacles.
+
+class Block(GameObject):
+    def __init__(self, x, y):
+        self.image, self.rect = GameUtils.load_image('block.png')
+        super().__init__(x, y)
+
+
+# Items.
+
+class Cheese(GameObject):
+    def __init__(self, x, y):
+        self.image, self.rect = GameUtils.load_image('cheese.png')
+        super().__init__(x, y)
+
+
+class Wine(GameObject):
+    def __init__(self, x, y):
+        self.image, self.rect = GameUtils.load_image('wine.png')
+        super().__init__(x, y)
+
+
+# Objectives.
+
 class Exit(GameObject):
     def __init__(self, x, y):
         self.image, self.rect = GameUtils.load_image('exit.png')
         super().__init__(x, y)
 
+
+# Trajectories.
 
 class Searched(GameObject):
     def __init__(self, x, y):

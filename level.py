@@ -5,15 +5,29 @@ Created on Thu May 31 17:14:26 2018
 @author: dominik.scherer
 """
 
-import numpy as np
 import random
+from enum import Enum
 
-class Cell():
-    def __init__(self):
-        pass
+import numpy as np
+
+
+class CellType(Enum):
+    EMPTY = 0
+    BLOCK = 1
+    START = 2
+    EXIT = 3
+    TRAJECTORY = 4
+    WINE = 5
+    CHEESE = 6
+
+
+class Cell(object):
+    def __init__(self, type, state=None):
+        self.type = type
+        self.state = state
 
     def get_state(self):
-        return None
+        return self.state
 
     def has_state(self):
         return self.get_state() is not None
@@ -21,31 +35,49 @@ class Cell():
 
 class EmptyCell(Cell):
     def __init__(self):
-        self.type = ' '
-        super().__init__()
+        super().__init__(' ')
 
 
 class BlockCell(Cell):
     def __init__(self):
-        self.type = '#'
-        super().__init__()
+        super().__init__('#')
 
 
 class StartPositionCell(Cell):
     def __init__(self):
-        self.type = 'S'
-        super().__init__()
+        super().__init__('S')
 
 class ExitCell(Cell):
     def __init__(self):
-        self.type = 'E'
-        super().__init__()
+        super().__init__('E')
+
 
 # helper cell type for trajectory visualization
 class TrajectoryCell(Cell):
     def __init__(self):
-        self.type = '*'
-        super().__init__()
+        super().__init__('*')
+
+
+# Items.
+
+class PickableItemCell(Cell):
+    """
+    Any object you can pick up.
+    """
+
+    def __init__(self, type):
+        # Here the `state` indicates whether the item is still present.
+        super().__init__(type=type, state=True)
+
+
+class CheeseCell(PickableItemCell):
+    def __init__(self):
+        super().__init__('C')
+
+
+class WineCell(PickableItemCell):
+    def __init__(self):
+        super().__init__('W')
 
 
 class Level:
@@ -63,10 +95,10 @@ class Level:
         self.exit = None
         
     def reset_border(self):
-        self.cells[:, 0] = 1
-        self.cells[:, self.width-1] = 1
-        self.cells[0, :] = 1
-        self.cells[self.height-1, :] = 1
+        self.cells[:, 0] = CellType.BLOCK.value
+        self.cells[:, self.width-1] = CellType.BLOCK.value
+        self.cells[0, :] = CellType.BLOCK.value
+        self.cells[self.height-1, :] = CellType.BLOCK.value
 
     def reset_trajectory(self, trajectory):
         cells = trajectory.get_traversed_cells()
@@ -76,11 +108,11 @@ class Level:
 
     def set_start(self, pos):
         self.start = pos
-        self.set(pos, 2)
+        self.set(pos, CellType.START)
 
     def set_exit(self, pos):
         self.exit = pos
-        self.set(pos, 3)
+        self.set(pos, CellType.EXIT)
         
     def generate_from_trajectory(self, trajectory, density=0.1):
         self.set_start(trajectory.get_start())
@@ -92,7 +124,7 @@ class Level:
                 pos = (i,j)
                 if pos not in blocked_cells:
                     if random.random() < density:
-                        self.set(pos, 1)
+                        self.set(pos, CellType.BLOCK)
 
     def generate_from_matrix(self, matrix, trajectory = None):
         self.set_start(self.start)
@@ -118,9 +150,9 @@ class Level:
     def size(self):
         return self.width, self.height
 
-    def set(self, pos, value):
+    def set(self, pos, cell_type):
         x, y = pos
-        self.cells[y, x] = value
+        self.cells[y, x] = cell_type.value
 
     def get(self, pos):
         x, y = pos
