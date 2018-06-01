@@ -3,6 +3,9 @@
 import os
 import random
 import sys
+import queue
+from multiprocessing import Process, Queue
+from multiprocessing import Event as MultiEvent
 
 import pygame
 from pygame.locals import QUIT, K_SPACE, KEYDOWN, USEREVENT
@@ -15,8 +18,9 @@ from game_utils import GameUtils
 from level import Level, EmptyCell, BlockCell, StartPositionCell, ExitCell
 from search import WorldGraph, a_star_search
 from controllers import KeyboardController, AStarController
-from trajectory import Trajectory, RandomWalkTrajectory
+from trajectory import RandomWalkTrajectory
 from world import World
+from optimize import optimize
 
 # Initialize seed immediately to be safe (default = system clock, but you can use a fixed integer for debugging).
 random.seed(None)
@@ -30,6 +34,9 @@ class EngineState:
     def __init__(self, mode, playing):
         self.mode = mode
         self.playing = playing
+        self.optimizer_process = None
+        self.output_queue = None
+        self.stop_event = None
 
 
 class Menu:
@@ -40,10 +47,11 @@ class Menu:
         self.display = display
         w, h = self.display.get_size()
         self.panel_pos = (w - self.PANEL_WIDTH, self.PANEL_MARGIN_TOP)
-        self.optimizeButton = OptimizeButton(self.optimize, self.panel_pos)
+        self.optimizeButton = OptimizeButton(self.run_optimizer, self.panel_pos)
         self.keyboardModeButton = KeyboardModeButton(self.keyboard_mode, self.panel_pos)
         self.astarModeButton = AStarModeButton(self.astar_mode, self.panel_pos)
         self.gui_objects = [self.optimizeButton, self.keyboardModeButton, self.astarModeButton]
+        self.should_run_optimizer = False
 
     def update(self, enginestate):
         if enginestate.mode == GameEngine.MODE_KEYBOARD:
@@ -52,6 +60,15 @@ class Menu:
         elif enginestate.mode == GameEngine.MODE_ASTAR:
             self.keyboardModeButton.deactivate()
             self.astarModeButton.activate()
+        if self.should_run_optimizer:
+            self.should_run_optimizer = False
+            self._run_optimizer(enginestate)
+        if enginestate.optimizer_process is not None and not enginestate.optimizer_process.is_alive():
+            print('Optimizer process died')
+            enginestate.optimizer_process = None
+            enginestate.output_queue = None
+            self.optimizeButton.set_disabled(False)
+            enginestate.stop_event.set()
 
     def draw(self):
         for gui_object in self.gui_objects:
@@ -67,8 +84,18 @@ class Menu:
             if mouse in gui_object.gui_element:
                 gui_object.on_mouse_down()
 
-    def optimize(self):
-        pass
+    def _run_optimizer(self, enginestate):
+        enginestate.output_queue = Queue()
+        enginestate.stop_event = MultiEvent()
+        enginestate.optimizer_process = Process(target=optimize,
+                                                kwargs=dict(output_queue=enginestate.output_queue,
+                                                            stop_event=enginestate.stop_event,
+                                                            put_period=5))
+        enginestate.optimizer_process.start()
+        self.optimizeButton.set_disabled(True)
+
+    def run_optimizer(self):
+        self.should_run_optimizer = True
 
     def keyboard_mode(self):
         event = Event(CustomEvents.EVENT_MODE_CHANGED, message=GameEngine.MODE_KEYBOARD)
@@ -117,6 +144,14 @@ class MyButton:
         if self.activated:
             self.gui_element.color = self.deactivated_color
             self.activated = False
+
+    def set_disabled(self, value):
+        if value != self.disabled:
+            self.disabled = value
+            if self.disabled:
+                self.gui_element.color = self.MODE_DISABLED_COLOR
+            else:
+                self.gui_element.color = self.activated_color
 
     def _do_action(self):
         self.callback()
@@ -203,12 +238,15 @@ class GameEngine:
         self._init_sound()
         self._init_enginestate()
 
-    def _load_level(self, level_filename=None):
+    def _load_level(self, level_filename=None, level=None, trajectory=None):
         if level_filename is None:
             width, height = 40, 30
             self.trajectory = RandomWalkTrajectory(width, height)
             self.level = Level(width, height)
             self.level.generate_from_trajectory(self.trajectory, 0.5)
+        elif level is not None:
+            self.level = level
+            self.trajectory = trajectory
         else:
             self.level = Level.load_level(level_filename)
         self.level_width, self.level_height = self.level.size()
@@ -273,6 +311,8 @@ class GameEngine:
 
     def _teardown(self):
         print('Exiting...')
+        if self.enginestate.stop_event is not None:
+            self.enginestate.stop_event.set()
         pygame.mixer.quit()
         pygame.quit()
 
@@ -283,6 +323,15 @@ class GameEngine:
         self._initialize_level()
         self._set_mode(mode)
         self._set_playing(True)
+
+    def _check_new_level(self):
+        if self.enginestate.output_queue is not None:
+            try:
+                level, trajectory = self.enginestate.output_queue.get(block=False)
+                self._load_level(level=level, trajectory=trajectory)
+                self.start(self.enginestate.mode)
+            except queue.Empty:
+                pass
 
     def loop(self):
         tick = 0
@@ -333,6 +382,7 @@ class GameEngine:
             self._update_display()
             self.clock.tick(self.TICKS_PER_SECOND)
             tick += 1
+            self._check_new_level()
 
 
 class GameObject(pygame.sprite.Sprite):
