@@ -1,8 +1,8 @@
-from enum import Enum
+from enum import IntEnum
 from level import BlockCell, CellType, CheeseCell, EmptyCell, ExitCell, IceCell, StartPositionCell, TornadoCell, WineCell
 
 
-class Action(Enum):
+class Action(IntEnum):
     LEFT = 0
     RIGHT = 1
     UP = 2

@@ -6,12 +6,12 @@ Created on Thu May 31 17:14:26 2018
 """
 
 import random
-from enum import Enum
+from enum import IntEnum
 
 import numpy as np
 
 
-class CellType(Enum):
+class CellType(IntEnum):
     EMPTY = 0
     BLOCK = 1
     START = 2
