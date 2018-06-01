@@ -14,9 +14,9 @@ class Phenotype:
         self.a = 0
         self.level = level
         
-    def levelFromChromosomes(self, chromosomes):
+    def levelFromChromosomes(self, chromosomes, trajectory, width, height):
         matrix = np.mat(chromosomes)
-        matrix = matrix.reshape(30,40)
-        self.level.generate_from_matrix(matrix)
+        matrix = matrix.reshape(height,width)
+        self.level.generate_from_matrix(matrix, trajectory)
         
     

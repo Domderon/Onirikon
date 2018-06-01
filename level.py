@@ -117,7 +117,7 @@ class Level:
         cells = trajectory.get_traversed_cells()
         for cell in cells:
             if type(self.get_cell(*cell)) is BlockCell:
-                self.set(cell, 0)
+                self.set(cell, CellType.EMPTY)
 
     def set_start(self, pos):
         self.start = pos

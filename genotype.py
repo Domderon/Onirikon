@@ -17,11 +17,12 @@ class Genotype:
         self.chromosomes = np.zeros(0, dtype=int)
 
     def randomize(self, chromosomeSize, trajectory):
-        self.level = Level(40,30)
+        self.level = Level(trajectory.level_width,trajectory.level_height)
         self.level.generate_from_trajectory(trajectory, random.uniform(0,1))
         self.phenotype = Phenotype(self.level)
         self.chromosomes = self.level.cells
         self.chromosomes = self.chromosomes.flatten()
+        self.trajectory = trajectory
 #        np.set_printoptions(threshold=np.nan)
 #        print(self.chromosomes)
 #        print("another genotype")
@@ -32,5 +33,5 @@ class Genotype:
         """
             
     def getPhenotype(self):
-        self.phenotype.levelFromChromosomes(self.chromosomes)
+        self.phenotype.levelFromChromosomes(self.chromosomes, self.trajectory, 40, 30)
         return self.phenotype

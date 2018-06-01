@@ -27,6 +27,7 @@ class Algorithm:
         self.level_width = width
         self.level_height = height
         self.best = None
+        self.best_generations = []
 
           
     """
@@ -51,13 +52,15 @@ class Algorithm:
     def evaluatePopulation(self):
         for individual in self.population:
             individual.setFitness(self.calculateFitness(individual))
+#            print("fitness is = " + str(individual.getFitness()))
+#            individual.getPhenotype().level.print()
         self.population.sort(key=operator.attrgetter('fitness'), reverse=True)
     
     """
     Fitness FUNCTION!
     """
     def calculateFitness(self, individual):
-        print("calculating...")
+        #print("calculating...")
         phen = individual.getPhenotype()
         world = World(phen.level)
         state = world.init_state
@@ -109,8 +112,17 @@ class Algorithm:
               str(self.population[0].individualID()) + 
               " with a fitness of: " + 
               str(self.population[0].getFitness()))
+        
+        self.best = self.population[0]
+        self.best_generations.append(str("BEST INDIVIDUAL IS: " + 
+              str(self.population[0].individualID()) + 
+              " with a fitness of: " + 
+              str(self.population[0].getFitness())))
 #        print(self.population[0].getGenotype().chromosomes)
-        self.population[0].getPhenotype().level.print()
+        #self.population[0].getPhenotype().level.print()
+        
+    def printBestGenerations(self):
+        print(self.best_generations)
 
     """
     Runs the algorithm entirely
@@ -119,14 +131,16 @@ class Algorithm:
         self.initializePopulation()
         for i in range(self.generations):
             self.evaluatePopulation()
-            #self.printBestIndividual()
+            self.printBestIndividual()
             offsprings = self.selectIndividuals()
             self.replaceIndividuals(offsprings)
-            #self.mutatePopulation()
+            self.mutatePopulation()
+            
+        self.evaluatePopulation()
         return 
-
-trajectory = RandomWalkTrajectory(40, 30)
-evolutionaryAlgorithm = Algorithm(trajectory, width=40, height=30, population_size=100, generations=50, chromosome_size=100)
-evolutionaryAlgorithm.run()
-evolutionaryAlgorithm.printBestIndividual()
+#
+#trajectory = RandomWalkTrajectory(40, 30)
+#evolutionaryAlgorithm = Algorithm(trajectory, width=40, height=30, population_size=10, generations=1, chromosome_size=100)
+#evolutionaryAlgorithm.run()
+#evolutionaryAlgorithm.printBestIndividual()
 
