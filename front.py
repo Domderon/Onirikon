@@ -363,6 +363,18 @@ class Block(GameObject):
         super().__init__(x, y)
 
 
+class Ice(GameObject):
+    def __init__(self, x, y):
+        self.image, self.rect = GameUtils.load_image('ice.png')
+        super().__init__(x, y)
+
+
+class Tornado(GameObject):
+    def __init__(self, x, y):
+        self.image, self.rect = GameUtils.load_image('tornado.png')
+        super().__init__(x, y)
+
+
 # Items.
 
 class Cheese(GameObject):

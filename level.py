@@ -19,6 +19,8 @@ class CellType(Enum):
     TRAJECTORY = 4
     WINE = 5
     CHEESE = 6
+    TORNADO = 7
+    ICE = 8
 
 
 class Cell(object):
@@ -51,6 +53,16 @@ class StartPositionCell(Cell):
 class ExitCell(Cell):
     def __init__(self):
         super().__init__('E')
+
+
+class IceCell(Cell):
+    def __init__(self):
+        super().__init__('I')
+
+
+class TornadoCell(Cell):
+    def __init__(self):
+        super().__init__('T')
 
 
 # helper cell type for trajectory visualization
