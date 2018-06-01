@@ -28,8 +28,8 @@ class Individual:
         #print("Individual " + str(self.id) + " is doing the crossover with Individual " + str(otherInd.id))
         #2-point-crossover
         
-        lower_bound = random.randint(0, self.chromosome_size - 1)
-        higher_bound = random.randint(lower_bound, self.chromosome_size - 1)        
+        lower_bound = random.randint(0, len(self.genotype.chromosomes) - 1)
+        higher_bound = random.randint(lower_bound, len(self.genotype.chromosomes) - 1)        
         
         offsprings = []
         offsprings.append(copy.deepcopy(self))
@@ -47,14 +47,15 @@ class Individual:
     def mutate(self, mutation_probability):
         #print("Individual " + str(self.id) + " is MUTATING")
         if random.uniform(0,1) > mutation_probability:
-            self.genotype.chromosomes[random.randint(0, self.chromosome_size - 1)] = random.randint(0, 1)
+            self.genotype.chromosomes[random.randint(0, len(self.genotype.chromosomes) - 1)] = random.randint(0, 1)
         return
     
     """
     Test each chromosome for mutation
     """
     def mutateAll(self, mutation_probability):
-        for i in range(self.chromosome_size):
+        chromosome_size = len(self.genotype.chromosomes)
+        for i in range(chromosome_size):
             if random.uniform(0, 1) > mutation_probability:
                 self.genotype[i] = random.randint(0, 1)
     

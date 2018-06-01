@@ -135,7 +135,8 @@ def a_star_search(graph, start, exit_definition, extract_definition):
                 frontier.put(next_, priority)
                 came_from[next_] = current
 
-    assert found, 'A* failed'
+    if not found:
+        raise OverflowError('A* failed')
     # print(f'A* succeeded in {n_steps} steps')
     return came_from, cost_so_far, current, n_steps
 

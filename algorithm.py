@@ -7,7 +7,6 @@ Created on Thu May 31 15:44:57 2018
 
 from individual import Individual
 from level import Level
-from trajectory import Trajectory, RandomWalkTrajectory
 from search import WorldGraph, a_star_search
 from world import World
 import operator
@@ -28,7 +27,6 @@ class Algorithm:
         self.level_height = height
         self.best = None
         self.best_generations = []
-
           
     """
     Test get population
@@ -67,11 +65,15 @@ class Algorithm:
         exit_position, exit_cell = phen.level.get_exit()
         
         #Calculate the cost of traversing the level
-        came_from, cost_so_far, current, n_steps = a_star_search(
-        graph=WorldGraph(world), start=state,
-            exit_definition=exit_position,
-            extract_definition=world.get_player_position)
-        
+        try:
+            came_from, cost_so_far, current, n_steps = a_star_search(
+            graph=WorldGraph(world), start=state,
+                exit_definition=exit_position,
+                extract_definition=world.get_player_position)
+        except OverflowError:
+            # A* failure.
+            return 0
+
         return n_steps
         
     """
@@ -129,6 +131,7 @@ class Algorithm:
     """
     def run(self):
         self.initializePopulation()
+        print("dsdsds")
         for i in range(self.generations):
             self.evaluatePopulation()
             yield self.population[0].getPhenotype().level  # TODO FIX COPY
@@ -139,9 +142,9 @@ class Algorithm:
 
         self.evaluatePopulation()
         yield self.population[0].getPhenotype().level
-#
+
 #trajectory = RandomWalkTrajectory(40, 30)
-#evolutionaryAlgorithm = Algorithm(trajectory, width=40, height=30, population_size=10, generations=1, chromosome_size=100)
+#evolutionaryAlgorithm = Algorithm(trajectory, width=40, height=30, population_size=10, generations=10, chromosome_size=100)
 #evolutionaryAlgorithm.run()
 #evolutionaryAlgorithm.printBestIndividual()
 
