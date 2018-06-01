@@ -169,8 +169,9 @@ class Level:
         self.set_exit(trajectory.get_end())
         world = World(self)
         
-        num_changes = density * self.width * self.height
+        num_changes = int(density * self.width * self.height)
         
+        iterations = 0
         while num_changes != 0:
             # select a random cell
             cell = (random.randint(1,self.width-2), random.randint(1,self.height-2))
@@ -183,6 +184,10 @@ class Level:
                 num_changes -= 1
             else:
                 self.set(cell, CellType(old_state))
+            iterations += 1
+            if iterations > 1000:
+                return
+        
         self.set_start(self.start)
         self.set_exit(self.exit)
 
