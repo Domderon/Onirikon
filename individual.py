@@ -6,6 +6,7 @@ Created on Thu May 31 15:45:33 2018
 """
 
 from genotype import Genotype
+from world import World
 import random
 import copy
 
@@ -41,7 +42,11 @@ class Individual:
         
         
         #Check for validity of the world
-        
+        world_validity = World(offsprings[0].getPhenotype().level)
+        if world_validity.validate_trajectory(offsprings[0].getGenotype().trajectory) == False:
+            offsprings[0] = copy.deepcopy(self)
+        if world_validity.validate_trajectory(offsprings[1].getGenotype().trajectory) == False:
+            offsprings[1] = copy.deepcopy(otherInd)
         
         return offsprings 
     
@@ -51,7 +56,7 @@ class Individual:
     def mutate(self, mutation_probability):
         possible_tiles = [0,1,5,6,7,8]
         #print("Individual " + str(self.id) + " is MUTATING")
-        if random.uniform(0,1) > mutation_probability:
+        if random.uniform(0,1) < mutation_probability:
             self.genotype.chromosomes[random.randint(0, len(self.genotype.chromosomes) - 1)] = possible_tiles[random.randint(0, len(possible_tiles) - 1)]
         return
     
@@ -62,7 +67,7 @@ class Individual:
         possible_tiles = [0,1,5,6,7,8]
         chromosome_size = len(self.genotype.chromosomes)
         for i in range(chromosome_size):
-            if random.uniform(0, 1) > mutation_probability:
+            if random.uniform(0, 1) < mutation_probability:
                 self.genotype[i] = possible_tiles[random.randint(0, len(possible_tiles) - 1)]
     
     def setFitness(self, fitness):
