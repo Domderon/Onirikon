@@ -6,6 +6,9 @@ from world import Action
 def pos_add(a, b):
     return (a[0]+b[0], a[1]+b[1])
 
+def pos_multadd(a, b, l):
+    return (a[0]+b[0]*l, a[1]+b[1]*l)
+
 class Trajectory():
     # an array of directions, validate for maximum extend, and for non-crossing
     # direction: 0,1,2,3
@@ -142,6 +145,45 @@ class RandomWalkTrajectory(Trajectory):
             # none of the moves was successful
             level.set(pos, CellType.EMPTY)
             return None
+
+class RandomCrossWalk(Trajectory):
+    def __init__(self, level_width, level_height, max_length = None, min_segment = 2, max_segment = 8):
+        super().__init__(level_width, level_height)
+
+        if max_length is None:
+            max_length = self.level_width + self.level_height
+
+        level = Level(level_width, level_height)
+        self.start = (random.randint(1,self.level_width-2), random.randint(1,self.level_height-2))
+        self.actions = self.generate_crossing_path(level, self.start, max_length, min_segment, max_segment)
+
+
+    def generate_crossing_path(self, level, pos, max_length, min_segment, max_segment, is_horizontal = True):
+        level.set(pos, CellType.TRAJECTORY)
+
+        if max_length <= 1:
+            return []
+        else:
+            actions = [Action.LEFT, Action.RIGHT] if is_horizontal else [Action.UP, Action.DOWN]
+            random.shuffle(actions)
+            length = random.randint(min_segment, max_segment)
+            
+            # try a random move of length
+            for action in actions:
+                offset = self.offsets[action]
+                next_pos = pos_multadd(pos, offset, length)
+                # skip if it leads into a wall
+                x, y = next_pos[0], next_pos[1]
+                if x <= 0 or x >= level.width - 1 or y <= 0 or y >= level.height - 1:
+                    continue
+                
+                path = self.generate_crossing_path(level, next_pos, max_length-length, min_segment, max_segment, not is_horizontal)
+                if path is not None:
+                    return [action] * length + path
+            # none of the moves was successful
+            level.set(pos, CellType.EMPTY)
+            return None
+  
 
 #'''
 #l = Level(60, 30)
