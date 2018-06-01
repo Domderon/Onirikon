@@ -385,7 +385,7 @@ class GameEngine:
                     if self.last_valid_level is None:
                         return
                     else:
-                        level = self.last_valid_level
+                        level, trajectory = self.last_valid_level
                 assert level is not None
                 self.last_valid_level = None
                 self.enginestate.go_next_level = False
@@ -394,7 +394,7 @@ class GameEngine:
                 self.start(self.enginestate.mode)
             elif level is not None:
                 # Remember it in case we need it later.
-                self.last_valid_level = level
+                self.last_valid_level = level, trajectory
 
     def loop(self):
         tick = 0

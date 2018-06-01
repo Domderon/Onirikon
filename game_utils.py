@@ -25,7 +25,7 @@ class GameUtils:
         try:
             image = pygame.image.load(fullname)
         except pygame.error:
-#            print('Warning: cannot load image: %s, generating placeholder' % fullname)
+            # print('Warning: cannot load image: %s, generating placeholder' % fullname)
             return GameUtils.generate_placeholder_image(name)
         if rescale is not None:
             image = pygame.transform.scale(image, rescale)
