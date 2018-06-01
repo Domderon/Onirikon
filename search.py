@@ -137,7 +137,7 @@ def a_star_search(graph, start, exit_definition, extract_definition):
 
     assert found, 'A* failed'
     # print(f'A* succeeded in {n_steps} steps')
-    return came_from, cost_so_far, current
+    return came_from, cost_so_far, current, n_steps
 
 
 def main():
