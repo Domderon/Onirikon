@@ -99,7 +99,17 @@ class Level:
         return Level(10, 10)
 
     def __init__(self, width, height):
-        self.types = [EmptyCell, BlockCell, StartPositionCell, ExitCell, TrajectoryCell]
+        self.types = {
+            CellType.EMPTY: EmptyCell,
+            CellType.BLOCK: BlockCell,
+            CellType.START: StartPositionCell,
+            CellType.EXIT: ExitCell,
+            CellType.TRAJECTORY: TrajectoryCell,
+            CellType.WINE: WineCell,
+            CellType.CHEESE: CheeseCell,
+            CellType.TORNADO: TornadoCell,
+            CellType.ICE: IceCell
+        }
         self.width = width
         self.height = height
         self.cells = np.zeros((height, width), dtype=int)
@@ -130,7 +140,9 @@ class Level:
     def generate_from_trajectory(self, trajectory, density=0.1):
         self.set_start(trajectory.get_start())
         self.set_exit(trajectory.get_end())
-
+        self.generate_simple(trajectory, density)
+        
+    def generate_simple(self, trajectory, density):
         blocked_cells = trajectory.get_traversed_cells()
         for i in range(1, self.width-1):
             for j in range(1, self.height-1):
@@ -138,6 +150,39 @@ class Level:
                 if pos not in blocked_cells:
                     if random.random() < density:
                         self.set(pos, CellType.BLOCK)
+        
+    def random_state(self):
+        r = random.random()
+        if r < 0.1:
+            return CellType.CHEESE
+        elif r < 0.2:
+            return CellType.WINE
+        elif r < 0.5:
+            return CellType.BLOCK
+        else:
+            return CellType.EMPTY
+
+    def generate_valid(self, trajectory, density = 0.2):
+        from world import World
+
+        self.set_start(trajectory.get_start())
+        self.set_exit(trajectory.get_end())
+        world = World(self)
+        
+        num_changes = density * self.width * self.height
+        
+        while num_changes != 0:
+            # select a random cell
+            cell = (random.randint(1,self.width-2), random.randint(1,self.height-2))
+            # select a new state for this cell
+            old_state = self.get(cell)
+            new_state = self.random_state()
+            self.set(cell, new_state)
+            # validate that the new level is traversable by the trajectory
+            if world.validate_trajectory(trajectory):
+                num_changes -= 1
+            else:
+                self.set(cell, CellType(old_state))
 
     def generate_from_matrix(self, matrix, trajectory = None):
         self.set_start(self.start)

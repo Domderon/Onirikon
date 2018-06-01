@@ -1,7 +1,6 @@
 from enum import IntEnum
 from level import BlockCell, CellType, CheeseCell, EmptyCell, ExitCell, IceCell, StartPositionCell, TornadoCell, WineCell
 
-
 class Action(IntEnum):
     LEFT = 0
     RIGHT = 1
@@ -47,7 +46,7 @@ class World(object):
             if isinstance(cell, StartPositionCell):
                 self.init_state.append(pos)
                 self.player_position_idx = len(self.init_state) - 1
-            elif isinstance(cell, (BlockCell, EmptyCell, ExitCell)):
+            elif isinstance(cell, (BlockCell, EmptyCell, ExitCell, WineCell, CheeseCell, TornadoCell, IceCell)):
                 # Ignore.
                 pass
             else:
@@ -91,3 +90,13 @@ class World(object):
         elif target_cell_type == CellType.CHEESE:
             new_state[self.weight_idx] = min(MAX_WEIGHT, current_weight + 1)
         return tuple(new_state)
+
+    def validate_trajectory(self, trajectory):
+        state = self.init_state
+        for action in trajectory.actions:
+            new_state = self.perform(state, action)
+            if new_state is None:
+                return False
+            else:
+                state = new_state
+        return True
