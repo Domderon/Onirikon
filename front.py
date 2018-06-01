@@ -28,6 +28,7 @@ random.seed(None)
 
 class CustomEvents:
     EVENT_MODE_CHANGED = USEREVENT
+    EVENT_GO_NEXT_LEVEL = USEREVENT + 1
 
 
 class EngineState:
@@ -37,6 +38,7 @@ class EngineState:
         self.optimizer_process = None
         self.output_queue = None
         self.stop_event = None
+        self.go_next_level = False
 
 
 class Menu:
@@ -50,7 +52,8 @@ class Menu:
         self.optimizeButton = OptimizeButton(self.run_optimizer, self.panel_pos)
         self.keyboardModeButton = KeyboardModeButton(self.keyboard_mode, self.panel_pos)
         self.astarModeButton = AStarModeButton(self.astar_mode, self.panel_pos)
-        self.gui_objects = [self.optimizeButton, self.keyboardModeButton, self.astarModeButton]
+        self.nextLevelButton = NextLevelButton(self.next_level, self.panel_pos)
+        self.gui_objects = [self.optimizeButton, self.keyboardModeButton, self.astarModeButton, self.nextLevelButton]
         self.should_run_optimizer = False
 
     def update(self, enginestate):
@@ -90,7 +93,7 @@ class Menu:
         enginestate.optimizer_process = Process(target=optimize,
                                                 kwargs=dict(output_queue=enginestate.output_queue,
                                                             stop_event=enginestate.stop_event,
-                                                            put_period=5))
+                                                            put_period=1))
         enginestate.optimizer_process.start()
         self.optimizeButton.set_disabled(True)
 
@@ -103,6 +106,10 @@ class Menu:
 
     def astar_mode(self):
         event = Event(CustomEvents.EVENT_MODE_CHANGED, message=GameEngine.MODE_ASTAR)
+        pygame.event.post(event)
+
+    def next_level(self):
+        event = Event(CustomEvents.EVENT_GO_NEXT_LEVEL, message=None)
         pygame.event.post(event)
 
 
@@ -174,6 +181,13 @@ class AStarModeButton(MyButton):
                  activated_color=MyButton.MODE_ACTIVATED_COLOR, deactivated_color=MyButton.MODE_DEACTIVATED_COLOR):
         super().__init__(callback, panel_pos, 'astar', 'A* Mode', x, y, w, h,
                          activated_color, deactivated_color)
+
+
+class NextLevelButton(MyButton):
+    def __init__(self, callback, panel_pos, x=0, y=300, w=150, h=40,
+                 activated_color=GREEN):
+        super().__init__(callback, panel_pos, 'next', 'NEXT LEVEL', x, y, w, h,
+                         activated_color)
 
 
 class GameEngine:
@@ -328,8 +342,10 @@ class GameEngine:
         if self.enginestate.output_queue is not None:
             try:
                 level, trajectory = self.enginestate.output_queue.get(block=False)
-                self._load_level(level=level, trajectory=trajectory)
-                self.start(self.enginestate.mode)
+                if self.enginestate.go_next_level:
+                    self.enginestate.go_next_level = False
+                    self._load_level(level=level, trajectory=trajectory)
+                    self.start(self.enginestate.mode)
             except queue.Empty:
                 pass
 
@@ -357,6 +373,8 @@ class GameEngine:
                     self.menu.on_mouse_up()
                 elif event.type == CustomEvents.EVENT_MODE_CHANGED:
                     self.start(event.message)
+                elif event.type == CustomEvents.EVENT_GO_NEXT_LEVEL:
+                    self.enginestate.go_next_level = True
             if self.enginestate.playing:
                 if len(keys) > 0:
                     key = keys.pop(0)
@@ -382,6 +400,8 @@ class GameEngine:
             self._update_display()
             self.clock.tick(self.TICKS_PER_SECOND)
             tick += 1
+            if self.enginestate.mode == self.MODE_ASTAR and not self.enginestate.playing:
+                self.enginestate.go_next_level = True
             self._check_new_level()
 
 
