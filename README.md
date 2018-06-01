@@ -6,7 +6,7 @@ A genetic algorithm evolves the levels to produce progressivly harder levels. Th
 
 Installation:
 - requires Python 3.*, pyGame, PygameGUILib
-- run python front.py
+- run python front.py  (or pythonw front.py on Mac Os)
 
 Credits:
 - Alberto Alvarez
