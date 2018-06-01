@@ -206,9 +206,9 @@ class GameEngine:
     def _load_level(self, level_filename=None):
         if level_filename is None:
             width, height = 40, 30
-            trajectory = RandomWalkTrajectory(width, height)
+            self.trajectory = RandomWalkTrajectory(width, height)
             self.level = Level(width, height)
-            self.level.generate_from_trajectory(trajectory, 0.5)
+            self.level.generate_from_trajectory(self.trajectory, 0.5)
         else:
             self.level = Level.load_level(level_filename)
         self.level_width, self.level_height = self.level.size()
