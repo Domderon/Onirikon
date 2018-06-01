@@ -68,8 +68,8 @@ class Individual:
         chromosome_size = len(self.genotype.chromosomes)
         for i in range(chromosome_size):
             if random.uniform(0, 1) < mutation_probability:
-                self.genotype[i] = possible_tiles[random.randint(0, len(possible_tiles) - 1)]
-    
+                self.genotype.chromosomes[i] = possible_tiles[random.randint(0, len(possible_tiles) - 1)]
+
     def setFitness(self, fitness):
         self.fitness = fitness
         

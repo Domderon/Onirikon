@@ -251,6 +251,7 @@ class GameEngine:
 
     def __init__(self, fullscreen=False):
         self.level = None
+        self.last_valid_level = None
         pygame.init()
         self._init_display(fullscreen)
         self._init_keyboard()

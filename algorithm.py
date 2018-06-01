@@ -95,7 +95,7 @@ class Algorithm:
     """
     def mutatePopulation(self):
         for individual in self.population:
-            individual.mutate(self.mutation_probability)
+            individual.mutateAll(self.mutation_probability)
     
     def replaceIndividuals(self, new_individuals):
         #print("Replace the half of the individuals? ... 50% elitism")

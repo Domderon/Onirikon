@@ -23,6 +23,7 @@ def optimize(output_queue, stop_event, trajectory, width=LEVEL_WIDTH, height=LEV
     algorithm = Algorithm(trajectory=trajectory, width=trajectory.level_width, height=trajectory.level_height,
                           population_size=10,
                           tournament_size=5,
+                          mutation_probability=0.01,
                           generations=1000, chromosome_size=100)
 
     for best_level in algorithm.run():
