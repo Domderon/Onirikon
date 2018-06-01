@@ -484,7 +484,8 @@ class Tornado(GameObject):
 
 class Empty(GameObject):
     def __init__(self, x, y):
-        name = 'empty%d.png' % (((x + y) % 2) + 1)
+        # name = 'empty%d.png' % (((x + y) % 2) + 1)
+        name = 'empty%d.png' % (((x + y) % 1) + 1)
         self.image, self.rect = GameUtils.load_image(name, rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
         super().__init__(x, y)
 
