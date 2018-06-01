@@ -145,8 +145,8 @@ class RandomWalkTrajectory(Trajectory):
 
 #'''
 #l = Level(60, 30)
-t = RandomWalkTrajectory(60, 30)
+#t = RandomWalkTrajectory(60, 30)
 #l.generate_from_trajectory(t, 0.1)
-t.draw()
+#t.draw()
 #l.print()
 #'''

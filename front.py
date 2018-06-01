@@ -92,9 +92,11 @@ class Menu:
     def _run_optimizer(self, enginestate):
         enginestate.output_queue = Queue()
         enginestate.stop_event = MultiEvent()
+        trajectory = RandomWalkTrajectory(level_width=10, level_height=12)
         enginestate.optimizer_process = Process(target=optimize,
                                                 kwargs=dict(output_queue=enginestate.output_queue,
                                                             stop_event=enginestate.stop_event,
+                                                            trajectory=trajectory,
                                                             put_period=1))
         enginestate.optimizer_process.start()
         self.optimizeButton.set_disabled(True)

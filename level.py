@@ -223,9 +223,9 @@ class Level:
         self.set_exit(self.exit)
 
     def generate_from_matrix(self, matrix, trajectory = None):
+        self.cells = matrix
         self.set_start(self.start)
         self.set_exit(self.exit)
-        self.cells = matrix
         self.reset_border()
         if trajectory is not None:
             self.reset_trajectory(trajectory)

@@ -7,29 +7,32 @@ import time
 
 from multiprocessing import Event, Process, Queue
 
+from algorithm import Algorithm
 from level import Level
 from level import LEVEL_WIDTH, LEVEL_HEIGHT
 from trajectory import RandomWalkTrajectory
 
 
-def optimize(output_queue, stop_event, width=LEVEL_WIDTH, height=LEVEL_HEIGHT, put_period=10, density=0.2):
+def optimize(output_queue, stop_event, trajectory, width=LEVEL_WIDTH, height=LEVEL_HEIGHT, put_period=10, density=0.2):
     """
     Launch optimization.
 
     :param output_queue: Queue where the interesting results of the optimization process should be put.
+    :param stop_event: Event that should be set when this function must return.
     """
-    while True:
+    algorithm = Algorithm(trajectory=trajectory, width=trajectory.level_width, height=trajectory.level_height,
+                          population_size=10,
+                          tournament_size=5,
+                          generations=1000, chromosome_size=100)
+
+    for best_level in algorithm.run():
+        try:
+            output_queue.put_nowait((best_level, trajectory))
+        except queue.Full:
+            print('Warning: output queue is full')
         if stop_event.is_set():
             print('Stop event detected - stopping optimization')
             break
-        level = Level(width, height)
-        trajectory = RandomWalkTrajectory(width, height)
-        level.generate_from_trajectory(trajectory, density=density)
-        time.sleep(put_period)
-        try:
-            output_queue.put_nowait((level, trajectory))
-        except queue.Full:
-            print('Warning: output queue is full')
 
 
 if __name__ == '__main__':

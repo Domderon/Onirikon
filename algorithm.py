@@ -125,19 +125,20 @@ class Algorithm:
         print(self.best_generations)
 
     """
-    Runs the algorithm entirely
+    Runs the algorithm one generation at a time.
     """
     def run(self):
         self.initializePopulation()
         for i in range(self.generations):
             self.evaluatePopulation()
+            yield self.population[0].getPhenotype().level  # TODO FIX COPY
             self.printBestIndividual()
             offsprings = self.selectIndividuals()
             self.replaceIndividuals(offsprings)
             self.mutatePopulation()
-            
+
         self.evaluatePopulation()
-        return 
+        yield self.population[0].getPhenotype().level
 #
 #trajectory = RandomWalkTrajectory(40, 30)
 #evolutionaryAlgorithm = Algorithm(trajectory, width=40, height=30, population_size=10, generations=1, chromosome_size=100)
