@@ -103,7 +103,7 @@ class GameEngine:
 
         # Compute path from start to exit with A*.
         exit_position, exit_cell = self.level.get_exit()
-        came_from, cost_so_far, current = a_star_search(
+        came_from, cost_so_far, current, n_steps = a_star_search(
             graph=WorldGraph(self.world), start=self.state,
             exit_definition=exit_position,
             extract_definition=self.world.get_player_position)

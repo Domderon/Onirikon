@@ -47,6 +47,7 @@ class StartPositionCell(Cell):
     def __init__(self):
         super().__init__('S')
 
+
 class ExitCell(Cell):
     def __init__(self):
         super().__init__('E')
