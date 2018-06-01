@@ -46,7 +46,7 @@ class AStarController(Controller):
         while True:
             if current is None:
                 break
-            self.path.append(current)
+            self.path.append(self.world.get_player_position(current))
             current = came_from[current]
         self.path.reverse()
 
@@ -74,6 +74,6 @@ class AStarController(Controller):
         self.tick += 1
         action = None
         if self.tick % self.ACTION_TICK_INTERVAL == 0:
-            action = self._get_action(self.path[0][0], self.path[1][0])
+            action = self._get_action(self.path[0], self.path[1])
             self.path.pop(0)
         return action
