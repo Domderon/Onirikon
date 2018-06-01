@@ -39,25 +39,31 @@ class Individual:
             offsprings[0].getGenotype().chromosomes[i] = otherInd.getGenotype().chromosomes[i]
             offsprings[1].getGenotype().chromosomes[i] = self.getGenotype().chromosomes[i]
         
+        
+        #Check for validity of the world
+        
+        
         return offsprings 
     
     """
     Mutate an individual chromosome! (called from the algorithm!)
     """
     def mutate(self, mutation_probability):
+        possible_tiles = [0,1,5,6,7,8]
         #print("Individual " + str(self.id) + " is MUTATING")
         if random.uniform(0,1) > mutation_probability:
-            self.genotype.chromosomes[random.randint(0, len(self.genotype.chromosomes) - 1)] = random.randint(0, 1)
+            self.genotype.chromosomes[random.randint(0, len(self.genotype.chromosomes) - 1)] = possible_tiles[random.randint(0, len(possible_tiles) - 1)]
         return
     
     """
     Test each chromosome for mutation
     """
     def mutateAll(self, mutation_probability):
+        possible_tiles = [0,1,5,6,7,8]
         chromosome_size = len(self.genotype.chromosomes)
         for i in range(chromosome_size):
             if random.uniform(0, 1) > mutation_probability:
-                self.genotype[i] = random.randint(0, 1)
+                self.genotype[i] = possible_tiles[random.randint(0, len(possible_tiles) - 1)]
     
     def setFitness(self, fitness):
         self.fitness = fitness
