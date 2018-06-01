@@ -346,6 +346,11 @@ class GameEngine:
         pygame.display.flip()
         pygame.display.update()
 
+    def _remove_collected(self):
+        for obj in self.game_objects:
+            if (type(obj) is Wine or type(obj) is Cheese) and obj.x == self.player.x and obj.y == self.player.y:
+                obj.remove()
+
     def _teardown(self):
         print('Exiting...')
         if self.enginestate.stop_event is not None:
@@ -411,6 +416,7 @@ class GameEngine:
                         player_pos = self.world.get_player_position(self.state)
                         self.player.x, self.player.y = player_pos
                         self.player.update_coords()
+                        self._remove_collected()
                         if self.player.x == self.exit.x and self.player.y == self.exit.y:
                             self._play_sound('win')
                             self._set_playing(False)
@@ -433,11 +439,17 @@ class GameObject(pygame.sprite.Sprite):
         self.x = x
         self.y = y
         self.update_coords()
+        self.killed = False
         super().__init__()
 
     def update_coords(self):
         self.rect.x = GameEngine.MARGIN_LEFT + self.x * GameEngine.CELL_SIZE
         self.rect.y = GameEngine.MARGIN_TOP + self.y * GameEngine.CELL_SIZE
+
+    def remove(self):
+        if not self.killed:
+            self.killed = True
+            self.kill()
 
 
 # Characters.
@@ -472,8 +484,7 @@ class Tornado(GameObject):
 
 class Empty(GameObject):
     def __init__(self, x, y):
-        # name = 'empty%d.png' % (((x + y) % 2) + 1)
-        name = 'empty%d.png' % (((x + y) % 1) + 1)
+        name = 'empty%d.png' % (((x + y) % 2) + 1)
         self.image, self.rect = GameUtils.load_image(name, rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
         super().__init__(x, y)
 
