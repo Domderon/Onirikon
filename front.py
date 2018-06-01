@@ -5,7 +5,11 @@ import random
 import sys
 
 import pygame
-from pygame.locals import QUIT, K_SPACE, KEYDOWN
+from pygame.locals import QUIT, K_SPACE, KEYDOWN, USEREVENT
+from pygame.event import Event
+
+from GUI import Button
+from GUI.locals import TOPLEFT, GREEN, GREY
 
 from game_utils import GameUtils
 from level import Level, EmptyCell, BlockCell, StartPositionCell, ExitCell
@@ -16,6 +20,125 @@ from world import World
 
 # Initialize seed immediately to be safe (default = system clock, but you can use a fixed integer for debugging).
 random.seed(None)
+
+
+class CustomEvents:
+    EVENT_MODE_CHANGED = USEREVENT
+
+
+class EngineState:
+    def __init__(self, mode, playing):
+        self.mode = mode
+        self.playing = playing
+
+
+class Menu:
+    PANEL_WIDTH = 180
+    PANEL_MARGIN_TOP = 20
+
+    def __init__(self, display):
+        self.display = display
+        w, h = self.display.get_size()
+        self.panel_pos = (w - self.PANEL_WIDTH, self.PANEL_MARGIN_TOP)
+        self.optimizeButton = OptimizeButton(self.optimize, self.panel_pos)
+        self.keyboardModeButton = KeyboardModeButton(self.keyboard_mode, self.panel_pos)
+        self.astarModeButton = AStarModeButton(self.astar_mode, self.panel_pos)
+        self.gui_objects = [self.optimizeButton, self.keyboardModeButton, self.astarModeButton]
+
+    def update(self, enginestate):
+        if enginestate.mode == GameEngine.MODE_KEYBOARD:
+            self.keyboardModeButton.activate()
+            self.astarModeButton.deactivate()
+        elif enginestate.mode == GameEngine.MODE_ASTAR:
+            self.keyboardModeButton.deactivate()
+            self.astarModeButton.activate()
+
+    def draw(self):
+        for gui_object in self.gui_objects:
+            gui_object.gui_element.render(self.display)
+
+    def on_mouse_up(self):
+        for gui_object in self.gui_objects:
+            gui_object.on_mouse_up()
+
+    def on_mouse_down(self):
+        mouse = pygame.mouse.get_pos()
+        for gui_object in self.gui_objects:
+            if mouse in gui_object.gui_element:
+                gui_object.on_mouse_down()
+
+    def optimize(self):
+        pass
+
+    def keyboard_mode(self):
+        event = Event(CustomEvents.EVENT_MODE_CHANGED, message=GameEngine.MODE_KEYBOARD)
+        pygame.event.post(event)
+
+    def astar_mode(self):
+        event = Event(CustomEvents.EVENT_MODE_CHANGED, message=GameEngine.MODE_ASTAR)
+        pygame.event.post(event)
+
+
+class MyButton:
+    MODE_ACTIVATED_COLOR = (242, 142, 48)
+    MODE_DEACTIVATED_COLOR = (219, 185, 151)
+    MODE_DISABLED_COLOR = (181, 176, 171)
+
+    def __init__(self, callback, panel_pos, name, label, x, y, w, h, activated_color=GREEN, deactivated_color=GREY):
+        self.callback = callback
+        self.panel_pos = panel_pos
+        self.name = name
+        self.activated_color = activated_color
+        self.deactivated_color = deactivated_color
+        self.gui_element = Button(self._do_action, (x + panel_pos[0], y + panel_pos[1]), (w, h), label,
+                                  self.activated_color, anchor=TOPLEFT)
+        self.down = False
+        self.activated = True
+        self.disabled = False
+
+    def on_mouse_up(self):
+        if self.down and not self.disabled:
+            self.gui_element.unfocus()
+            self.gui_element.release()
+            self.down = False
+
+    def on_mouse_down(self):
+        if not self.down and not self.disabled:
+            self.down = True
+            self.gui_element.focus()
+            self.gui_element.click()
+
+    def activate(self):
+        if not self.activated:
+            self.gui_element.color = self.activated_color
+            self.activated = True
+
+    def deactivate(self):
+        if self.activated:
+            self.gui_element.color = self.deactivated_color
+            self.activated = False
+
+    def _do_action(self):
+        self.callback()
+
+
+class OptimizeButton(MyButton):
+    def __init__(self, callback, panel_pos, x=0, y=0, w=100, h=40):
+        super().__init__(callback, panel_pos, 'optimize', 'Optimize', x, y, w, h)
+
+
+class KeyboardModeButton(MyButton):
+    def __init__(self, callback, panel_pos, x=0, y=100, w=150, h=40,
+                 activated_color=MyButton.MODE_ACTIVATED_COLOR, deactivated_color=MyButton.MODE_DEACTIVATED_COLOR):
+        super().__init__(callback, panel_pos, 'keyboard', 'Keyboard Mode', x, y, w, h,
+                         activated_color, deactivated_color)
+
+
+class AStarModeButton(MyButton):
+    def __init__(self, callback, panel_pos, x=0, y=150, w=150, h=40,
+                 activated_color=MyButton.MODE_ACTIVATED_COLOR, deactivated_color=MyButton.MODE_DEACTIVATED_COLOR):
+        super().__init__(callback, panel_pos, 'astar', 'A* Mode', x, y, w, h,
+                         activated_color, deactivated_color)
 
 
 class GameEngine:
@@ -34,8 +157,10 @@ class GameEngine:
             self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.HWSURFACE)
         else:
             self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT), pygame.RESIZABLE)
+        pygame.display.set_caption('Onirikon')
         surface = pygame.Surface(self.screen.get_size())
         self.surface = surface.convert()
+        self.menu = Menu(self.screen)
 
     def _init_clock(self):
         self.clock = pygame.time.Clock()
@@ -56,21 +181,29 @@ class GameEngine:
         if name in self.sounds:
             self.sounds[name].play()
 
+    def _init_enginestate(self):
+        self.enginestate = EngineState(self.MODE_KEYBOARD, True)
+
     def _set_mode(self, mode):
-        self.mode = mode
+        self.enginestate.mode = mode
         if mode == self.MODE_KEYBOARD:
             self._initialize_controller(KeyboardController())
         elif mode == self.MODE_ASTAR:
             self._initialize_controller(AStarController(self.level))
 
+    def _set_playing(self, playing):
+        self.enginestate.playing = playing
+
     def __init__(self, fullscreen=False):
+        self.level = None
         pygame.init()
         self._init_display(fullscreen)
         self._init_keyboard()
         self._init_clock()
         self._init_sound()
+        self._init_enginestate()
 
-    def _initialize_level(self, level_filename=None):
+    def _load_level(self, level_filename=None):
         if level_filename is None:
             width, height = 40, 30
             trajectory = RandomWalkTrajectory(width, height)
@@ -79,6 +212,8 @@ class GameEngine:
         else:
             self.level = Level.load_level(level_filename)
         self.level_width, self.level_height = self.level.size()
+
+    def _initialize_level(self):
         self.game_objects = []
         for x in range(self.level_width):
             for y in range(self.level_height):
@@ -118,7 +253,7 @@ class GameEngine:
         for state in search_path:
             self.game_objects.append(Searched(*self.world.get_player_position(state)))
 
-        trajectory_path = trajectory.get_path()
+        trajectory_path = self.trajectory.get_path()
         for point in trajectory_path:
             self.game_objects.append(TrajectoryPath(*point))
 
@@ -131,6 +266,7 @@ class GameEngine:
     def _update_display(self):
         self.screen.blit(self.surface, (0, 0))
         self.sprites.update()
+        self.menu.draw()
         self.sprites.draw(self.screen)
         pygame.display.flip()
         pygame.display.update()
@@ -140,11 +276,13 @@ class GameEngine:
         pygame.mixer.quit()
         pygame.quit()
 
-    def start(self, level_filename, mode):
+    def start(self, mode, level_filename=None):
         self._clear_screen()
-        self._initialize_level(level_filename)
+        if self.level is None:
+            self._load_level(level_filename)
+        self._initialize_level()
         self._set_mode(mode)
-        self.playing = True
+        self._set_playing(True)
 
     def loop(self):
         tick = 0
@@ -162,11 +300,19 @@ class GameEngine:
                         self._teardown()
                         sys.exit()
                     else:
-                        if self.mode == self.MODE_KEYBOARD:
+                        if self.enginestate.mode == self.MODE_KEYBOARD:
                             keys.append(event)
-            if self.playing:
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    self.menu.on_mouse_down()
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    self.menu.on_mouse_up()
+                elif event.type == CustomEvents.EVENT_MODE_CHANGED:
+                    self.start(event.message)
+            if self.enginestate.playing:
                 if len(keys) > 0:
                     key = keys.pop(0)
+                else:
+                    key = None
                 action = self.controller.get_action(data=key)
                 if action is not None:
                     state = self.world.perform(self.state, action)
@@ -176,14 +322,14 @@ class GameEngine:
                         self.player.x, self.player.y = player_pos
                         self.player.update_coords()
                         if self.player.x == self.exit.x and self.player.y == self.exit.y:
-                            print("WIN")
                             self._play_sound('win')
-                            self.playing = False
+                            self._set_playing(False)
                             self.clock.tick(1)
                         else:
                             self._play_sound('move')
                     else:
                         self._play_sound('blocked')
+            self.menu.update(self.enginestate)
             self._update_display()
             self.clock.tick(self.TICKS_PER_SECOND)
             tick += 1
@@ -259,6 +405,5 @@ if __name__ == '__main__':
     else:
         level_filename = None
     engine = GameEngine(fullscreen=False)
-    #engine.start(level_filename, GameEngine.MODE_KEYBOARD)
-    engine.start(level_filename, GameEngine.MODE_ASTAR)
+    engine.start(GameEngine.MODE_KEYBOARD, level_filename=level_filename)
     engine.loop()

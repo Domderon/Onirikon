@@ -17,15 +17,16 @@ class KeyboardController(Controller):
 
     def get_action(self, data):
         action = None
-        event = data
-        if K_LEFT == event.key:
-            action = Action.LEFT
-        elif K_RIGHT == event.key:
-            action = Action.RIGHT
-        elif K_UP == event.key:
-            action = Action.UP
-        elif K_DOWN == event.key:
-            action = Action.DOWN
+        if data is not None:
+            event = data
+            if K_LEFT == event.key:
+                action = Action.LEFT
+            elif K_RIGHT == event.key:
+                action = Action.RIGHT
+            elif K_UP == event.key:
+                action = Action.UP
+            elif K_DOWN == event.key:
+                action = Action.DOWN
         return action
 
 
@@ -48,8 +49,6 @@ class AStarController(Controller):
             self.path.append(current)
             current = came_from[current]
         self.path.reverse()
-        print('--------------------- in controller :')
-        print(repr(self.path))
 
     def __init__(self, level):
         self.tick = 0
