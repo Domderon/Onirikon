@@ -68,6 +68,12 @@ class Level:
         self.cells[0, :] = 1
         self.cells[self.height-1, :] = 1
 
+    def reset_trajectory(self, trajectory):
+        cells = trajectory.get_traversed_cells()
+        for cell in cells:
+            if type(self.get_cell(*cell)) is BlockCell:
+                self.set(cell, 0)
+
     def set_start(self, pos):
         self.start = pos
         self.set(pos, 2)
@@ -88,11 +94,13 @@ class Level:
                     if random.random() < density:
                         self.set(pos, 1)
 
-    def generate_from_matrix(self, matrix):
+    def generate_from_matrix(self, matrix, trajectory = None):
         self.set_start(self.start)
         self.set_end(self.end)
         self.cells = matrix
         self.reset_border()
+        if trajectory is not None:
+            self.reset_trajectory(trajectory)
 
     def copy(self):
         level = Level(self.width, self.height)
