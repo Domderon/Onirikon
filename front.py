@@ -346,6 +346,11 @@ class GameEngine:
         pygame.display.flip()
         pygame.display.update()
 
+    def _remove_collected(self):
+        for obj in self.game_objects:
+            if (type(obj) is Wine or type(obj) is Cheese) and obj.x == self.player.x and obj.y == self.player.y:
+                obj.remove()
+
     def _teardown(self):
         print('Exiting...')
         if self.enginestate.stop_event is not None:
@@ -363,14 +368,32 @@ class GameEngine:
 
     def _check_new_level(self):
         if self.enginestate.output_queue is not None:
-            try:
-                level, trajectory = self.enginestate.output_queue.get(block=False)
-                if self.enginestate.go_next_level:
-                    self.enginestate.go_next_level = False
-                    self._load_level(level=level, trajectory=trajectory)
-                    self.start(self.enginestate.mode)
-            except queue.Empty:
-                pass
+            level = None
+            while True:
+                # Empty the queue.
+                try:
+                    level, trajectory = self.enginestate.output_queue.get_nowait()
+                except queue.Empty:
+                    if self.enginestate.output_queue.empty():
+                        break
+
+            if self.enginestate.go_next_level:
+                # Load next level.
+                if level is None:
+                    # No new level this time, but maybe we got an unused one still waiting?
+                    if self.last_valid_level is None:
+                        return
+                    else:
+                        level = self.last_valid_level
+                assert level is not None
+                self.last_valid_level = None
+                self.enginestate.go_next_level = False
+                print('Going to next level')
+                self._load_level(level=level, trajectory=trajectory)
+                self.start(self.enginestate.mode)
+            elif level is not None:
+                # Remember it in case we need it later.
+                self.last_valid_level = level
 
     def loop(self):
         tick = 0
@@ -411,6 +434,7 @@ class GameEngine:
                         player_pos = self.world.get_player_position(self.state)
                         self.player.x, self.player.y = player_pos
                         self.player.update_coords()
+                        self._remove_collected()
                         if self.player.x == self.exit.x and self.player.y == self.exit.y:
                             self._play_sound('win')
                             self._set_playing(False)
@@ -433,11 +457,17 @@ class GameObject(pygame.sprite.Sprite):
         self.x = x
         self.y = y
         self.update_coords()
+        self.killed = False
         super().__init__()
 
     def update_coords(self):
         self.rect.x = GameEngine.MARGIN_LEFT + self.x * GameEngine.CELL_SIZE
         self.rect.y = GameEngine.MARGIN_TOP + self.y * GameEngine.CELL_SIZE
+
+    def remove(self):
+        if not self.killed:
+            self.killed = True
+            self.kill()
 
 
 # Characters.
