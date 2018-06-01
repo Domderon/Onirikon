@@ -259,14 +259,17 @@ class GameEngine:
         self._init_enginestate()
 
     def _load_level(self, level_filename=None, level=None, trajectory=None):
-        if level_filename is None:
+        if level is not None:
+            print(f'level_filename is not None')
+            self.level = level
+            self.trajectory = trajectory
+            self.trajectory.draw()
+        elif level_filename is None:
+            print(f'level_filename is None')
             width, height = LEVEL_WIDTH, LEVEL_HEIGHT
             self.trajectory = RandomWalkTrajectory(width, height)
             self.level = Level(width, height)
             self.level.generate_from_trajectory(self.trajectory, 0.5)
-        elif level is not None:
-            self.level = level
-            self.trajectory = trajectory
         else:
             self.level = Level.load_level(level_filename)
         self.level_width, self.level_height = self.level.size()
