@@ -214,7 +214,7 @@ class GameEngine:
             self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT), pygame.RESIZABLE)
         pygame.display.set_caption('Onirikon')
         surface = pygame.Surface(self.screen.get_size())
-        self.surface = surface.convert()
+        self.surface = surface.convert_alpha()
         self.menu = Menu(self.screen)
 
     def _init_clock(self):
@@ -275,29 +275,35 @@ class GameEngine:
         self.game_objects = []
         for x in range(self.level_width):
             for y in range(self.level_height):
+                objs = []
                 cell = self.level.get_cell(x, y)
                 if type(cell) is EmptyCell:
-                    obj = Empty(x, y)
+                    objs.append(Empty(x, y))
                 elif type(cell) is BlockCell:
-                    obj = Block(x, y)
+                    objs.append(Block(x, y))
                 elif type(cell) is StartPositionCell:
+                    objs.append(Empty(x, y))
                     obj = Player(x, y)
                     self.player = obj
                 elif type(cell) is ExitCell:
                     obj = Exit(x, y)
                     self.exit = obj
+                    objs.append(obj)
                 elif type(cell) is WineCell:
-                    obj = Wine(x, y)
+                    objs.append(Empty(x, y))
+                    objs.append(Wine(x, y))
                 elif type(cell) is CheeseCell:
-                    obj = Cheese(x, y)
+                    objs.append(Empty(x, y))
+                    objs.append(Cheese(x, y))
                 elif type(cell) is TornadoCell:
-                    obj = Tornado(x, y)
+                    objs.append(Empty(x, y))
+                    objs.append(Tornado(x, y))
                 elif type(cell) is IceCell:
-                    obj = Ice(x, y)
-                else:
-                    obj = None
-                if obj is not None:
+                    objs.append(Empty(x, y))
+                    objs.append(Ice(x, y))
+                for obj in objs:
                     self.game_objects.append(obj)
+        self.game_objects.append(self.player)
 
         self.world = World(self.level)
         self.state = self.world.init_state
@@ -463,9 +469,11 @@ class Tornado(GameObject):
 
 class Empty(GameObject):
     def __init__(self, x, y):
-        name = 'empty%d.png' % (((x + y) % 2) + 1)
+        # name = 'empty%d.png' % (((x + y) % 2) + 1)
+        name = 'empty%d.png' % (((x + y) % 1) + 1)
         self.image, self.rect = GameUtils.load_image(name, rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
         super().__init__(x, y)
+
 
 # Items.
 

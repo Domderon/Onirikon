@@ -29,4 +29,4 @@ class GameUtils:
             return GameUtils.generate_placeholder_image(name)
         if rescale is not None:
             image = pygame.transform.scale(image, rescale)
-        return image.convert(), image.get_rect()
+        return image.convert_alpha(), image.get_rect()
