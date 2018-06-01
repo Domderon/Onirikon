@@ -36,12 +36,12 @@ class StartPositionCell(Cell):
         self.type = 'S'
         super().__init__()
 
-
 class ExitCell(Cell):
     def __init__(self):
         self.type = 'E'
         super().__init__()
 
+# helper cell type for trajectory visualization
 class TrajectoryCell(Cell):
     def __init__(self):
         self.type = '*'

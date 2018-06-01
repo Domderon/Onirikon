@@ -1,7 +1,6 @@
 import random
-import numpy
 
-from level import Level
+from level import Level, EmptyCell, BlockCell, StartPositionCell, ExitCell, TrajectoryCell
 from world import Action
 
 def pos_add(a, b):
@@ -121,7 +120,8 @@ class RandomWalkTrajectory(Trajectory):
                 offset = self.offsets[action]
                 next_pos = pos_add(pos, offset)
                 # skip if it leads into a wall
-                if level.get(next_pos) == 1:
+                cell = level.get_cell(*next_pos)
+                if type(cell) is BlockCell:
                     continue
                 
                 # get a list of all neighbors
@@ -131,7 +131,8 @@ class RandomWalkTrajectory(Trajectory):
                 all_clear = True
                 for neighbor_action in neighbors:
                     neighbor = pos_add(next_pos, self.offsets[neighbor_action])
-                    all_clear &= level.get(neighbor) != 4
+                    cell = level.get_cell(*neighbor)
+                    all_clear &= (type(cell) is not TrajectoryCell)
                 # if all neighbors are good, keep going
                 if all_clear:
                     path = self.generate_path(level, next_pos, max_length-1)
