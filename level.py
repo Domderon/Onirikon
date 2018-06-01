@@ -10,7 +10,6 @@ from enum import IntEnum
 
 import numpy as np
 
-
 class CellType(IntEnum):
     EMPTY = 0
     BLOCK = 1
@@ -22,6 +21,35 @@ class CellType(IntEnum):
     TORNADO = 7
     ICE = 8
 
+def PreprocessInitialDistribution():
+    weights = {
+        CellType.BLOCK: 80,
+        CellType.WINE: 5,
+        CellType.CHEESE: 5,
+        CellType.TORNADO: 30,
+        CellType.ICE: 30,
+
+        CellType.START: 0,
+        CellType.EXIT: 0,
+        CellType.TRAJECTORY: 0,
+        CellType.EMPTY: 0,
+     }
+    
+    sum = 0
+    for key, value in weights.items():
+        sum += value
+        
+    percentages = {}
+    current = 0
+    for key, value in weights.items():
+        lower = current / sum
+        current += value
+        upper = current / sum
+        
+        percentages[key] = (lower, upper)
+    return percentages
+
+cell_distribution = PreprocessInitialDistribution()
 
 class Cell(object):
     def __init__(self, type, state=None):
@@ -153,14 +181,12 @@ class Level:
         
     def random_state(self):
         r = random.random()
-        if r < 0.1:
-            return CellType.CHEESE
-        elif r < 0.2:
-            return CellType.WINE
-        elif r < 0.5:
-            return CellType.BLOCK
-        else:
-            return CellType.EMPTY
+        for cell_type, bounds in cell_distribution.items():
+            lower, upper = bounds[0], bounds[1]
+            if r >= lower and r < upper:
+                return cell_type
+        
+        raise ValueError
 
     def generate_valid(self, trajectory, density = 0.2):
         from world import World
