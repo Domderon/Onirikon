@@ -140,7 +140,7 @@ class RandomWalkTrajectory(Trajectory):
                     if path is not None:
                         return [action] + path
             # none of the moves was successful
-            level.set(pos, 0)
+            level.set(pos, CellType.EMPTY)
             return None
 
 #'''
