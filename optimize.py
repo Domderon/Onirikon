@@ -8,7 +8,7 @@ import time
 from multiprocessing import Event, Process, Queue
 
 from level import Level
-from trajectory import Trajectory
+from trajectory import RandomWalkTrajectory
 
 
 def optimize(output_queue, stop_event, width=20, height=30, put_period=10, density=0.2):
@@ -22,7 +22,7 @@ def optimize(output_queue, stop_event, width=20, height=30, put_period=10, densi
             print('Stop event detected - stopping optimization')
             break
         level = Level(width, height)
-        trajectory = Trajectory(level)
+        trajectory = RandomWalkTrajectory(width, height)
         level.generate_from_trajectory(trajectory, density=density)
         time.sleep(put_period)
         try:
