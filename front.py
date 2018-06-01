@@ -453,16 +453,18 @@ class GameEngine:
 
 
 class GameObject(pygame.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, x_offset=0, y_offset=0):
         self.x = x
         self.y = y
+        self.x_offset = x_offset
+        self.y_offset = y_offset
         self.update_coords()
         self.killed = False
         super().__init__()
 
     def update_coords(self):
-        self.rect.x = GameEngine.MARGIN_LEFT + self.x * GameEngine.CELL_SIZE
-        self.rect.y = GameEngine.MARGIN_TOP + self.y * GameEngine.CELL_SIZE
+        self.rect.x = GameEngine.MARGIN_LEFT + self.x * GameEngine.CELL_SIZE + self.x_offset
+        self.rect.y = GameEngine.MARGIN_TOP + self.y * GameEngine.CELL_SIZE + self.y_offset
 
     def remove(self):
         if not self.killed:
@@ -535,13 +537,13 @@ class Exit(GameObject):
 class Searched(GameObject):
     def __init__(self, x, y):
         self.image, self.rect = GameUtils.load_image('searched.png', rescale=(3, 3))
-        super().__init__(x, y)
+        super().__init__(x, y, x_offset=GameEngine.CELL_SIZE//2-1, y_offset=GameEngine.CELL_SIZE//2-1)
 
 
 class TrajectoryPath(GameObject):
     def __init__(self, x, y):
         self.image, self.rect = GameUtils.load_image('trajectory.png', rescale=(6, 6))
-        super().__init__(x, y)
+        super().__init__(x, y, x_offset=GameEngine.CELL_SIZE//2-3, y_offset=GameEngine.CELL_SIZE//2-3)
 
 
 if __name__ == '__main__':
