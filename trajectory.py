@@ -14,9 +14,10 @@ class Trajectory():
     offsets = { Action.LEFT : (-1,0), Action.RIGHT: (1,0), Action.UP : (0,-1), Action.DOWN: (0,1)}
     opposites = { Action.LEFT : Action.RIGHT, Action.RIGHT : Action.LEFT, Action.UP : Action.DOWN, Action.DOWN : Action.UP }
     
-    def __init__(self, level):
+    def __init__(self, level_width, level_height):
+        self.level_width = level_width
+        self.level_height = level_height
         self.actions = []
-        self.level = level
         self.start = (1,1)
         
     def get_traversed_cells(self):
@@ -37,7 +38,6 @@ class Trajectory():
             offset = self.offsets[action]
             pos = (pos[0] + offset[0], pos[1] + offset[1])
         return pos
-        
 
     def get_path(self):
         pos = self.start
@@ -48,9 +48,9 @@ class Trajectory():
             points.append(pos)
         return points
     
-    # visualize trajectory in level  
+    # visualize trajectory in (empty) level  
     def draw(self):
-        level = self.level.copy()
+        level = Level(self.level_width, self.level_height)
         path = self.get_path()
         for point in path:
             level.set(point, 2)
@@ -58,10 +58,10 @@ class Trajectory():
         return
 
 class TrivialTrajectory(Trajectory):
-    def __init__(self, level, min_length = None, max_length = None):
-        super().__init__(level)
+    def __init__(self, level_width, level_height, min_length = None, max_length = None):
+        super().__init__(level_width, level_height)
 
-        length_limit = level.width-3
+        length_limit = self.level_width-3
         if min_length is None:
             min_length = 1
         if max_length is None:
@@ -74,19 +74,19 @@ class TrivialTrajectory(Trajectory):
             return
 
         length = random.randint(min_length, max_length)
-        y = random.randint(1,level.height-2)
+        y = random.randint(1, self.level_height-2)
         self.start = (1,y)
         for i in range(length):
             self.actions.append(Action.RIGHT);
 
 class SimpleTrajectory(Trajectory):
-    def __init__(self, level):
-        super().__init__(level)
+    def __init__(self, level_width, level_height):
+        super().__init__(level_width, level_height)
 
-        start = (random.randint(1,level.width-2), random.randint(1,level.height-2))
+        start = (random.randint(1,self.level_width-2), random.randint(1,self.level_height-2))
         end = start
         while start == end:
-            end = (random.randint(1,level.width-2), random.randint(1,level.height-2))
+            end = (random.randint(1,self.level_width-2), random.randint(1,self.level_height-2))
 
         self.start = start
         x_dir = Action.RIGHT if start[0] < end[0] else Action.LEFT
@@ -98,14 +98,15 @@ class SimpleTrajectory(Trajectory):
             self.actions.append(y_dir)
     
 class RandomWalkTrajectory(Trajectory):
-    def __init__(self, level, max_length = None):
-        super().__init__(level)
+    def __init__(self, level_width, level_height, max_length = None):
+        super().__init__(level_width, level_height)
 
         if max_length is None:
-            max_length = level.width + level.height
+            max_length = self.level_width + self.level_height
 
-        self.start = (random.randint(1,level.width-2), random.randint(1,level.height-2))
-        self.actions = self.generate_path(level.copy(), self.start, max_length)
+        level = Level(level_width, level_height)
+        self.start = (random.randint(1,self.level_width-2), random.randint(1,self.level_height-2))
+        self.actions = self.generate_path(level, self.start, max_length)
 
     def generate_path(self, level, pos, max_length):
         level.set(pos, 4)
@@ -140,10 +141,10 @@ class RandomWalkTrajectory(Trajectory):
             level.set(pos, 0)
             return None
 
-'''
-l = Level(60, 30)
-t = TrivialTrajectory(l)
-l.generate_from_trajectory(t, 0.1)
+#'''
+#l = Level(60, 30)
+t = RandomWalkTrajectory(60, 30)
+#l.generate_from_trajectory(t, 0.1)
 t.draw()
 #l.print()
-'''
+#'''
