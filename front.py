@@ -11,8 +11,8 @@ from game_utils import GameUtils
 from level import Level, EmptyCell, BlockCell, StartPositionCell, ExitCell
 from search import WorldGraph, a_star_search
 from controllers import KeyboardController, AStarController
+from trajectory import Trajectory, RandomWalkTrajectory
 from world import World
-from trajectory import Trajectory
 
 # Initialize seed immediately to be safe (default = system clock, but you can use a fixed integer for debugging).
 random.seed(None)
@@ -73,8 +73,8 @@ class GameEngine:
     def _initialize_level(self, level_filename=None):
         if level_filename is None:
             self.level = Level(40, 30)
-            trajectory = Trajectory(self.level)
-            self.level.generate_from_trajectory(trajectory, 0.2)
+            trajectory = RandomWalkTrajectory(self.level)
+            self.level.generate_from_trajectory(trajectory, 0.5)
         else:
             self.level = Level.load_level(level_filename)
         self.level_width, self.level_height = self.level.size()
