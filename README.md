@@ -5,7 +5,7 @@ Onirikon is a puzzle game where you take control a Frenchman stumbling through t
 A genetic algorithm evolves the levels to produce progressivly harder levels. The fitness function optimizes for levels that require more A* search optimizations to find the shortest path.
 
 Installation:
-- requires Python 3.*, pyGame, pyGUI
+- requires Python 3.*, pyGame, PygameGUILib
 - run python front.py
 
 Credits:
