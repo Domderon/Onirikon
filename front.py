@@ -368,14 +368,32 @@ class GameEngine:
 
     def _check_new_level(self):
         if self.enginestate.output_queue is not None:
-            try:
-                level, trajectory = self.enginestate.output_queue.get(block=False)
-                if self.enginestate.go_next_level:
-                    self.enginestate.go_next_level = False
-                    self._load_level(level=level, trajectory=trajectory)
-                    self.start(self.enginestate.mode)
-            except queue.Empty:
-                pass
+            level = None
+            while True:
+                # Empty the queue.
+                try:
+                    level, trajectory = self.enginestate.output_queue.get_nowait()
+                except queue.Empty:
+                    if self.enginestate.output_queue.empty():
+                        break
+
+            if self.enginestate.go_next_level:
+                # Load next level.
+                if level is None:
+                    # No new level this time, but maybe we got an unused one still waiting?
+                    if self.last_valid_level is None:
+                        return
+                    else:
+                        level = self.last_valid_level
+                assert level is not None
+                self.last_valid_level = None
+                self.enginestate.go_next_level = False
+                print('Going to next level')
+                self._load_level(level=level, trajectory=trajectory)
+                self.start(self.enginestate.mode)
+            elif level is not None:
+                # Remember it in case we need it later.
+                self.last_valid_level = level
 
     def loop(self):
         tick = 0
