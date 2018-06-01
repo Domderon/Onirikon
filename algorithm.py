@@ -28,7 +28,6 @@ class Algorithm:
         self.level_height = height
         self.best = None
         self.best_generations = []
-
           
     """
     Test get population
@@ -129,6 +128,7 @@ class Algorithm:
     """
     def run(self):
         self.initializePopulation()
+        print("dsdsds")
         for i in range(self.generations):
             self.evaluatePopulation()
             yield self.population[0].getPhenotype().level  # TODO FIX COPY
@@ -139,9 +139,9 @@ class Algorithm:
 
         self.evaluatePopulation()
         yield self.population[0].getPhenotype().level
-#
+
 #trajectory = RandomWalkTrajectory(40, 30)
-#evolutionaryAlgorithm = Algorithm(trajectory, width=40, height=30, population_size=10, generations=1, chromosome_size=100)
+#evolutionaryAlgorithm = Algorithm(trajectory, width=40, height=30, population_size=10, generations=10, chromosome_size=100)
 #evolutionaryAlgorithm.run()
 #evolutionaryAlgorithm.printBestIndividual()
 
