@@ -122,7 +122,7 @@ def a_star_search(graph, start, exit_definition, extract_definition):
             break
 
         if current in processed:
-            print(f'Ignoring {current}')
+#            print(f'Ignoring {current}')
             continue
 
         processed.add(current)

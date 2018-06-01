@@ -55,9 +55,17 @@ class Individual:
     """
     def mutate(self, mutation_probability):
         possible_tiles = [0,1,5,6,7,8]
+        tries = 10
+        
         #print("Individual " + str(self.id) + " is MUTATING")
-        if random.uniform(0,1) < mutation_probability:
-            self.genotype.chromosomes[random.randint(0, len(self.genotype.chromosomes) - 1)] = possible_tiles[random.randint(0, len(possible_tiles) - 1)]
+        while tries > 0 :
+            tries -= 1
+            mutated_individual = copy.deepcopy(self)
+            if random.uniform(0,1) < mutation_probability:
+                mutated_individual.genotype.chromosomes[random.randint(0, len(self.genotype.chromosomes) - 1)] = possible_tiles[random.randint(0, len(possible_tiles) - 1)]
+            world_validity = World(mutated_individual.getPhenotype().level)
+            if world_validity.validate_trajectory(mutated_individual.getGenotype().trajectory) == True :
+                self.genotype = copy.deepcopy(mutated_individual.genotype)
         return
     
     """
@@ -66,9 +74,17 @@ class Individual:
     def mutateAll(self, mutation_probability):
         possible_tiles = [0,1,5,6,7,8]
         chromosome_size = len(self.genotype.chromosomes)
+        
+
+        mutated_individual = copy.deepcopy(self)
+        
         for i in range(chromosome_size):
             if random.uniform(0, 1) < mutation_probability:
-                self.genotype.chromosomes[i] = possible_tiles[random.randint(0, len(possible_tiles) - 1)]
+                mutated_individual.genotype.chromosomes[i] = possible_tiles[random.randint(0, len(possible_tiles) - 1)]
+                
+        world_validity = World(mutated_individual.getPhenotype().level)
+        if world_validity.validate_trajectory(mutated_individual.getGenotype().trajectory) == True :
+            self.genotype = copy.deepcopy(mutated_individual.genotype)
 
     def setFitness(self, fitness):
         self.fitness = fitness
