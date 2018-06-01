@@ -140,7 +140,7 @@ class Level:
     def generate_from_trajectory(self, trajectory, density=0.1):
         self.set_start(trajectory.get_start())
         self.set_exit(trajectory.get_end())
-        self.generate_simple(trajectory, density)
+        self.generate_valid(trajectory, density)
         
     def generate_simple(self, trajectory, density):
         blocked_cells = trajectory.get_traversed_cells()
@@ -183,6 +183,8 @@ class Level:
                 num_changes -= 1
             else:
                 self.set(cell, CellType(old_state))
+        self.set_start(self.start)
+        self.set_exit(self.exit)
 
     def generate_from_matrix(self, matrix, trajectory = None):
         self.set_start(self.start)

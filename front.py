@@ -15,7 +15,7 @@ from GUI import Button
 from GUI.locals import TOPLEFT, GREEN, GREY
 
 from game_utils import GameUtils
-from level import Level, EmptyCell, BlockCell, StartPositionCell, ExitCell
+from level import Level, EmptyCell, BlockCell, StartPositionCell, ExitCell, WineCell, CheeseCell, TornadoCell, IceCell
 from search import WorldGraph, a_star_search
 from controllers import KeyboardController, AStarController
 from trajectory import RandomWalkTrajectory
@@ -280,6 +280,14 @@ class GameEngine:
                 elif type(cell) is ExitCell:
                     obj = Exit(x, y)
                     self.exit = obj
+                elif type(cell) is WineCell:
+                    obj = Wine(x, y)
+                elif type(cell) is CheeseCell:
+                    obj = Cheese(x, y)
+                elif type(cell) is TornadoCell:
+                    obj = Tornado(x, y)
+                elif type(cell) is IceCell:
+                    obj = Ice(x, y)
                 else:
                     obj = None
                 if obj is not None:
