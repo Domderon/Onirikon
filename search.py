@@ -114,6 +114,8 @@ def a_star_search(graph, start, exit_definition, extract_definition):
     n_steps = 0
     while not frontier.empty():
         n_steps += 1
+        if n_steps % 100000 == 0:
+            print(f'A* steps: {n_steps}')
         current = frontier.get()
 
         if extract_definition(current) == exit_definition:
@@ -122,7 +124,8 @@ def a_star_search(graph, start, exit_definition, extract_definition):
             break
 
         if current in processed:
-#            print(f'Ignoring {current}')
+            # TODO This happens a lot! Needs investigating!
+            # print(f'Ignoring {current}')
             continue
 
         processed.add(current)
@@ -136,6 +139,7 @@ def a_star_search(graph, start, exit_definition, extract_definition):
                 came_from[next_] = current
 
     if not found:
+        # TODO Understand why this happens
         raise OverflowError('A* failed')
     # print(f'A* succeeded in {n_steps} steps')
     return came_from, cost_so_far, current, n_steps

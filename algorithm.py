@@ -134,7 +134,8 @@ class Algorithm:
         print("dsdsds")
         for i in range(self.generations):
             self.evaluatePopulation()
-            yield self.population[0].getPhenotype().level  # TODO FIX COPY
+            # TODO Check if the returned individual needs to be (deep-)copied to ensure operations below keep it intact.
+            yield self.population[0].getPhenotype().level
             self.printBestIndividual()
             offsprings = self.selectIndividuals()
             self.replaceIndividuals(offsprings)
