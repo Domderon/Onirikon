@@ -57,6 +57,7 @@ class Menu:
         self.nextLevelButton = NextLevelButton(self.next_level, self.panel_pos)
         self.gui_objects = [self.optimizeButton, self.keyboardModeButton, self.astarModeButton, self.nextLevelButton]
         self.should_run_optimizer = False
+        self.trajectory = None
 
     def update(self, enginestate):
         if enginestate.mode == GameEngine.MODE_KEYBOARD:
@@ -92,7 +93,10 @@ class Menu:
     def _run_optimizer(self, enginestate):
         enginestate.output_queue = Queue()
         enginestate.stop_event = MultiEvent()
-        trajectory = RandomWalkTrajectory(level_width=LEVEL_WIDTH, level_height=LEVEL_HEIGHT)
+        if self.trajectory is None:
+            trajectory = RandomWalkTrajectory(level_width=LEVEL_WIDTH, level_height=LEVEL_HEIGHT)
+        else:
+            trajectory = self.trajectory
         enginestate.optimizer_process = Process(target=optimize,
                                                 kwargs=dict(output_queue=enginestate.output_queue,
                                                             stop_event=enginestate.stop_event,
@@ -274,6 +278,7 @@ class GameEngine:
         else:
             self.level = Level.load_level(level_filename)
         self.level_width, self.level_height = self.level.size()
+        self.menu.trajectory = self.trajectory
 
     def _initialize_level(self):
         self.game_objects = []
