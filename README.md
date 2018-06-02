@@ -7,9 +7,10 @@ The fitness function optimizes for levels that require more A* search optimizati
 It guarantees that the (randomly generated) initial trajectory (shown as yellow dots) remains a valid solution through the course of optimization.
 
 Installation:
-- requires Python 3.*, pyGame, PygameGUILib
+- requires Python 3.6, numpy, pyGame, PygameGUILib
 - run python front.py  (or pythonw front.py on Mac Os -- with Anaconda you may need to install it first with conda install python.app)
 - to play: click the Optimize button to start optimization in the background, then choose between Keyboard Mode (arrows) to play manually, or A* Mode to see how the AI solves the generated levels
+- press Space to exit
 
 Credits:
 - Alberto Alvarez aka "The Genetician"
