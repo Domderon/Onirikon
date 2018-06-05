@@ -4,7 +4,7 @@ Onirikon is a puzzle game where you take control a Frenchman stumbling through t
 
 A genetic algorithm evolves the levels to produce progressively harder levels.
 The fitness function optimizes for levels that require more A* search optimizations to find the shortest path.
-It guarantees that the (randomly generated) initial trajectory (shown as yellow dots) remains a valid solution through the course of optimization.
+It guarantees that the (randomly generated) initial trajectory (shown as a yellow line) remains a valid solution through the course of optimization.
 
 Installation:
 - requires Python 3.6, numpy, pyGame, PygameGUILib

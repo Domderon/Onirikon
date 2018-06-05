@@ -8,6 +8,9 @@ class GameUtils:
     DEFAULT_WIDTH = 32
     DEFAULT_HEIGHT = 32
 
+    RED = (200, 0, 0)
+    YELLOW = (255, 230, 20)
+
     def _color_from_string(s):
         h = crc32(s.encode('utf-8'))
         color = (h % 256, (h//256) % 256, (h//65536) % 256)

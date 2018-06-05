@@ -331,12 +331,20 @@ class GameEngine:
             search_path.append(current)
             current = came_from[current]
 
+        search_path = search_path
+        self.search_path = []
         for state in search_path:
-            self.game_objects.append(Searched(*self.world.get_player_position(state)))
-
+            point = self.world.get_player_position(state)
+            x = GameEngine.MARGIN_LEFT + point[0] * GameEngine.CELL_SIZE + GameEngine.CELL_SIZE/2 + 2
+            y = GameEngine.MARGIN_TOP + point[1] * GameEngine.CELL_SIZE + GameEngine.CELL_SIZE/2 + 2
+            self.search_path.append([x, y])
+        
         trajectory_path = self.trajectory.get_path()
+        self.trajectory_path = []
         for point in trajectory_path:
-            self.game_objects.append(TrajectoryPath(*point))
+            x = GameEngine.MARGIN_LEFT + point[0] * GameEngine.CELL_SIZE + GameEngine.CELL_SIZE/2 - 2
+            y = GameEngine.MARGIN_TOP + point[1] * GameEngine.CELL_SIZE + GameEngine.CELL_SIZE/2 - 2
+            self.trajectory_path.append([x, y])
 
         # Initialize sprites.
         self.sprites = pygame.sprite.Group(self.game_objects)
@@ -349,6 +357,10 @@ class GameEngine:
         self.sprites.update()
         self.menu.draw()
         self.sprites.draw(self.screen)
+
+        pygame.draw.lines(self.screen, GameUtils.RED, False, self.search_path, 2)
+        pygame.draw.lines(self.screen, GameUtils.YELLOW, False, self.trajectory_path, 2)
+
         pygame.display.flip()
         pygame.display.update()
 
@@ -556,20 +568,6 @@ class Exit(GameObject):
     def __init__(self, x, y):
         self.image, self.rect = GameUtils.load_image('exit.png', rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
         super().__init__(x, y)
-
-
-# Trajectories.
-
-class Searched(GameObject):
-    def __init__(self, x, y):
-        self.image, self.rect = GameUtils.load_image('searched.png', rescale=(3, 3))
-        super().__init__(x, y, x_offset=GameEngine.CELL_SIZE//2-1, y_offset=GameEngine.CELL_SIZE//2-1)
-
-
-class TrajectoryPath(GameObject):
-    def __init__(self, x, y):
-        self.image, self.rect = GameUtils.load_image('trajectory.png', rescale=(6, 6))
-        super().__init__(x, y, x_offset=GameEngine.CELL_SIZE//2-3, y_offset=GameEngine.CELL_SIZE//2-3)
 
 
 if __name__ == '__main__':
