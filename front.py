@@ -364,10 +364,10 @@ class GameEngine:
         pygame.display.flip()
         pygame.display.update()
 
-    def _remove_collected(self):
+    def _update_collected(self):
         for obj in self.game_objects:
-            if (type(obj) is Wine or type(obj) is Cheese) and obj.x == self.player.x and obj.y == self.player.y:
-                obj.remove()
+            if isinstance(obj, Item) and obj.x == self.player.x and obj.y == self.player.y:
+                obj.set_state(1)
 
     def _teardown(self):
         print('Exiting...')
@@ -453,7 +453,7 @@ class GameEngine:
                         player_pos = self.world.get_player_position(self.state)
                         self.player.x, self.player.y = player_pos
                         self.player.update_coords()
-                        self._remove_collected()
+                        self._update_collected()
                         if self.player.x == self.exit.x and self.player.y == self.exit.y:
                             self._play_sound('win')
                             self._set_playing(False)
@@ -550,15 +550,33 @@ class Empty(GameObject):
 
 # Items.
 
-class Cheese(GameObject):
+class Item(GameObject):
     def __init__(self, x, y):
-        self.image, self.rect = GameUtils.load_image('cheese.png', rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
+        self.images = []
+        self.rects = []
+        for image_name in self.image_names:
+            image, rect = GameUtils.load_image(image_name, rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
+            self.images.append(image)
+            self.rects.append(rect)
+        self.set_state(0, False)
+        super().__init__(x, y)
+
+    def set_state(self, state, do_update = True):
+        self.image = self.images[state]
+        self.rect = self.rects[state]
+        
+        if do_update:
+            self.update_coords()
+
+class Cheese(Item):
+    def __init__(self, x, y):
+        self.image_names = ['cheese.png', 'cheese_collected.png']
         super().__init__(x, y)
 
 
-class Wine(GameObject):
+class Wine(Item):
     def __init__(self, x, y):
-        self.image, self.rect = GameUtils.load_image('wine.png', rescale=(GameEngine.CELL_SIZE, GameEngine.CELL_SIZE))
+        self.image_names = ['wine.png', 'wine_collected.png']
         super().__init__(x, y)
 
 
