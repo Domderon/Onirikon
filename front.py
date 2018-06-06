@@ -12,8 +12,8 @@ import pygame
 from pygame.locals import QUIT, K_SPACE, KEYDOWN, USEREVENT
 from pygame.event import Event
 
-from GUI import Button
-from GUI.locals import TOPLEFT, GREEN, GREY
+from GUI import Button, SimpleText
+from GUI.locals import TOPLEFT, GREEN, GREY, BLACK
 
 from game_utils import GameUtils
 from level import Level, EmptyCell, BlockCell, StartPositionCell, ExitCell, WineCell, CheeseCell, TornadoCell, IceCell
@@ -55,7 +55,8 @@ class Menu:
         self.keyboardModeButton = KeyboardModeButton(self.keyboard_mode, self.panel_pos)
         self.astarModeButton = AStarModeButton(self.astar_mode, self.panel_pos)
         self.nextLevelButton = NextLevelButton(self.next_level, self.panel_pos)
-        self.gui_objects = [self.optimizeButton, self.keyboardModeButton, self.astarModeButton, self.nextLevelButton]
+        self.evaluationLabel = MyLabel(self.panel_pos, "Fitness: {0}", -12, 220, args = ['-'])
+        self.gui_objects = [self.optimizeButton, self.keyboardModeButton, self.astarModeButton, self.nextLevelButton, self.evaluationLabel]
         self.should_run_optimizer = False
         self.trajectory = None
 
@@ -82,12 +83,13 @@ class Menu:
 
     def on_mouse_up(self):
         for gui_object in self.gui_objects:
-            gui_object.on_mouse_up()
+            if gui_object.handle_mouse_events:
+                gui_object.on_mouse_up()
 
     def on_mouse_down(self):
         mouse = pygame.mouse.get_pos()
         for gui_object in self.gui_objects:
-            if mouse in gui_object.gui_element:
+            if mouse in gui_object.gui_element and gui_object.handle_mouse_events:
                 gui_object.on_mouse_down()
 
     def _run_optimizer(self, enginestate):
@@ -120,6 +122,22 @@ class Menu:
         event = Event(CustomEvents.EVENT_GO_NEXT_LEVEL, message=None)
         pygame.event.post(event)
 
+class MyLabel:
+    def __init__(self, panel_pos, text, x, y, args, color = BLACK):
+        self.unformatted_text = text
+
+        if args is None:
+            display_text = text
+        else:
+            display_text = text.format(*args)
+
+        self.gui_element = SimpleText(display_text, (x + panel_pos[0], y + panel_pos[1]), color, anchor=TOPLEFT)
+        self.panel_pos = panel_pos
+        self.handle_mouse_events = False
+
+    def set_values(self, *args):
+        text = self.unformatted_text.format(*args)
+        self.gui_element.text = text
 
 class MyButton:
     MODE_ACTIVATED_COLOR = (242, 142, 48)
@@ -137,6 +155,7 @@ class MyButton:
         self.down = False
         self.activated = True
         self.disabled = False
+        self.handle_mouse_events = True
 
     def on_mouse_up(self):
         if self.down and not self.disabled:
@@ -263,7 +282,7 @@ class GameEngine:
         self._init_sound()
         self._init_enginestate()
 
-    def _load_level(self, level_filename=None, level=None, trajectory=None):
+    def _load_level(self, level_filename=None, level=None, trajectory=None, fitness=None):
         if level is not None:
             print(f'level_filename is not None')
             self.level = level
@@ -279,6 +298,8 @@ class GameEngine:
             self.level = Level.load_level(level_filename)
         self.level_width, self.level_height = self.level.size()
         self.menu.trajectory = self.trajectory
+        
+        self.menu.evaluationLabel.set_values(fitness)
 
     def _initialize_level(self):
         self.game_objects = []
@@ -331,7 +352,6 @@ class GameEngine:
             search_path.append(current)
             current = came_from[current]
 
-        search_path = search_path
         self.search_path = []
         for state in search_path:
             point = self.world.get_player_position(state)
@@ -390,7 +410,7 @@ class GameEngine:
             while True:
                 # Empty the queue.
                 try:
-                    level, trajectory = self.enginestate.output_queue.get_nowait()
+                    level, trajectory, fitness = self.enginestate.output_queue.get_nowait()
                 except queue.Empty:
                     if self.enginestate.output_queue.empty():
                         break
@@ -402,16 +422,16 @@ class GameEngine:
                     if self.last_valid_level is None:
                         return
                     else:
-                        level, trajectory = self.last_valid_level
+                        level, trajectory, fitness = self.last_valid_level
                 assert level is not None
                 self.last_valid_level = None
                 self.enginestate.go_next_level = False
                 print('Going to next level')
-                self._load_level(level=level, trajectory=trajectory)
+                self._load_level(level=level, trajectory=trajectory, fitness=fitness)
                 self.start(self.enginestate.mode)
             elif level is not None:
                 # Remember it in case we need it later.
-                self.last_valid_level = level, trajectory
+                self.last_valid_level = level, trajectory, fitness
 
     def loop(self):
         tick = 0

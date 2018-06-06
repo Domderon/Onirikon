@@ -26,9 +26,9 @@ def optimize(output_queue, stop_event, trajectory, width=LEVEL_WIDTH, height=LEV
                           mutation_probability=0.01,
                           generations=1000, chromosome_size=100)
 
-    for best_level in algorithm.run():
+    for best_level, fitness in algorithm.run():
         try:
-            output_queue.put_nowait((best_level, trajectory))
+            output_queue.put_nowait((best_level, trajectory, fitness))
         except queue.Full:
             print('Warning: output queue is full')
         if stop_event.is_set():

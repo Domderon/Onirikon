@@ -135,14 +135,14 @@ class Algorithm:
         for i in range(self.generations):
             self.evaluatePopulation()
             # TODO Check if the returned individual needs to be (deep-)copied to ensure operations below keep it intact.
-            yield self.population[0].getPhenotype().level
+            yield self.population[0].getPhenotype().level, self.population[0].fitness
             self.printBestIndividual()
             offsprings = self.selectIndividuals()
             self.replaceIndividuals(offsprings)
             self.mutatePopulation()
 
         self.evaluatePopulation()
-        yield self.population[0].getPhenotype().level
+        yield self.population[0].getPhenotype().level, self.population[0].fitness
 
 #trajectory = RandomWalkTrajectory(40, 30)
 #evolutionaryAlgorithm = Algorithm(trajectory, width=40, height=30, population_size=10, generations=10, chromosome_size=100)
