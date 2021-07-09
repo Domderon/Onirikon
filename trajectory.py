@@ -44,7 +44,7 @@ class Trajectory():
     def get_path(self):
         pos = self.start
         points = [pos]
-        for action in self.actions[:-1]:
+        for action in self.actions:
             offset = self.offsets[action]
             pos = pos_add(pos, offset)
             points.append(pos)
@@ -61,7 +61,7 @@ class Trajectory():
 
 
 class TrivialTrajectory(Trajectory):
-    def __init__(self, level_width, level_height, min_length = None, max_length = None):
+    def __init__(self, level_width, level_height, min_length = 2, max_length = None):
         super().__init__(level_width, level_height)
 
         length_limit = self.level_width-3
@@ -144,7 +144,7 @@ class RandomWalkTrajectory(Trajectory):
                         return [action] + path
             # none of the moves was successful
             level.set(pos, CellType.EMPTY)
-            return None
+            return []
 
 class RandomCrossWalk(Trajectory):
     def __init__(self, level_width, level_height, max_length = None, min_segment = 2, max_segment = 8):
@@ -153,42 +153,41 @@ class RandomCrossWalk(Trajectory):
         if max_length is None:
             max_length = self.level_width + self.level_height
 
-        level = Level(level_width, level_height)
-        self.start = (random.randint(1,self.level_width-2), random.randint(1,self.level_height-2))
-        self.actions = self.generate_crossing_path(level, self.start, max_length, min_segment, max_segment)
+        self.start = (random.randint(1, level_width-2), random.randint(1, level_height-2))
+        self.actions = self.generate_crossing_path(self.start, max_length, min_segment, max_segment, level_width, level_height)
 
 
-    def generate_crossing_path(self, level, pos, max_length, min_segment, max_segment, is_horizontal = True):
-        level.set(pos, CellType.TRAJECTORY)
+    def generate_crossing_path(self, pos, max_length, min_segment, max_segment, max_width, max_height, is_horizontal = True):
+        horizontal_actions = [Action.LEFT, Action.RIGHT]
+        random.shuffle(horizontal_actions)
 
-        if max_length <= 1:
-            return []
-        else:
-            actions = [Action.LEFT, Action.RIGHT] if is_horizontal else [Action.UP, Action.DOWN]
-            random.shuffle(actions)
+        vertical_actions = [Action.UP, Action.DOWN]
+        random.shuffle(vertical_actions)
+
+        path = []
+
+        for i in range(100):
             length = random.randint(min_segment, max_segment)
-            
-            # try a random move of length
-            for action in actions:
-                offset = self.offsets[action]
-                next_pos = pos_multadd(pos, offset, length)
-                # skip if it leads into a wall
-                x, y = next_pos[0], next_pos[1]
-                if x <= 0 or x >= level.width - 1 or y <= 0 or y >= level.height - 1:
-                    continue
-                
-                path = self.generate_crossing_path(level, next_pos, max_length-length, min_segment, max_segment, not is_horizontal)
-                if path is not None:
-                    return [action] * length + path
-            # none of the moves was successful
-            level.set(pos, CellType.EMPTY)
-            return None
-  
+            print (i, length, max_length)
 
-#'''
-#l = Level(60, 30)
-#t = RandomWalkTrajectory(60, 30)
-#l.generate_from_trajectory(t, 0.1)
-#t.draw()
-#l.print()
-#'''
+            actions = horizontal_actions if is_horizontal else vertical_actions
+            action = actions[i % 2]
+            offset = self.offsets[action]
+            next_pos = pos_multadd(pos, offset, length)
+
+            # skip if it leads into a wall
+            x, y = next_pos[0], next_pos[1]
+            if x <= 0 or x >= max_width - 1 or y <= 0 or y >= max_height - 1:
+                continue
+
+            path = path + [action] * length
+            max_length -= length
+            pos = next_pos
+            
+            is_horizontal = not is_horizontal
+            
+            if max_length <= 1:
+                return path
+        
+        return path
+  
